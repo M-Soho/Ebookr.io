@@ -1,0 +1,21 @@
+# Core framework
+Django==5.0.1
+
+# Background tasks and broker
+celery==5.3.1
+redis==4.6.0
+
+# Environment and configuration
+django-environ==0.10.0
+
+# Payments
+stripe==11.0.0
+
+# CORS for local frontend -> backend requests
+django-cors-headers==4.0.0
+
+# Postgres driver
+psycopg[binary]==3.2.1
+
+# Production server
+gunicorn==20.1.0
