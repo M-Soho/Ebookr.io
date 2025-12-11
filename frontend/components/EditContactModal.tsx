@@ -2,31 +2,34 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createContact, Contact } from '@/lib/api'
+import { updateContact, Contact } from '@/lib/api'
 import { X } from 'lucide-react'
 import Modal from './Modal'
 
-interface NewContactModalProps {
+interface EditContactModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  contact: Contact
 }
 
-export function NewContactModal({ open, onOpenChange }: NewContactModalProps) {
+export function EditContactModal({ open, onOpenChange, contact }: EditContactModalProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    company: '',
-    source: '',
-    status: 'lead' as Contact['status'],
-    contact_type: 'contact' as Contact['contact_type'],
-    contact_cadence: 'none' as Contact['contact_cadence'],
-    contact_pref: 'email' as Contact['contact_pref'],
-    drip_campaign_enabled: false,
-    drip_campaign_config: null as any,
+    first_name: contact.first_name,
+    last_name: contact.last_name,
+    email: contact.email,
+    company: contact.company,
+    source: contact.source,
+    status: contact.status as Contact['status'],
+    contact_type: contact.contact_type as Contact['contact_type'],
+    contact_cadence: contact.contact_cadence as Contact['contact_cadence'],
+    contact_pref: contact.contact_pref as Contact['contact_pref'],
+    drip_campaign_enabled: contact.drip_campaign_enabled,
+    drip_campaign_config: contact.drip_campaign_config
+      ? JSON.stringify(contact.drip_campaign_config)
+      : null as any,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,9 +46,9 @@ export function NewContactModal({ open, onOpenChange }: NewContactModalProps) {
       return
     }
 
-        startTransition(async () => {
+    startTransition(async () => {
       try {
-        await createContact({
+        await updateContact(contact.id, {
           first_name: formData.first_name.trim(),
           last_name: formData.last_name.trim(),
           email: formData.email.trim(),
@@ -67,28 +70,13 @@ export function NewContactModal({ open, onOpenChange }: NewContactModalProps) {
             : null,
         })
 
-        // Reset form
-        setFormData({
-          first_name: '',
-          last_name: '',
-          email: '',
-          company: '',
-          source: '',
-          status: 'lead',
-          contact_type: 'contact',
-          contact_cadence: 'none',
-          contact_pref: 'email',
-          drip_campaign_enabled: false,
-          drip_campaign_config: null,
-        })
-
         // Close modal
         onOpenChange(false)
 
-        // Refresh contacts list
+        // Refresh contacts list and detail page
         router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to create contact')
+        setError(err instanceof Error ? err.message : 'Failed to update contact')
       }
     })
   }
@@ -97,7 +85,7 @@ export function NewContactModal({ open, onOpenChange }: NewContactModalProps) {
     <Modal open={open} onOpenChange={onOpenChange}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <h3 className="text-xl font-semibold text-gray-900">Add New Contact</h3>
+        <h3 className="text-xl font-semibold text-gray-900">Edit Contact</h3>
         <button
           onClick={() => onOpenChange(false)}
           className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
@@ -302,7 +290,7 @@ export function NewContactModal({ open, onOpenChange }: NewContactModalProps) {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
             )}
-            {isPending ? 'Creating...' : 'Create Contact'}
+            {isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>

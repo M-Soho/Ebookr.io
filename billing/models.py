@@ -61,3 +61,62 @@ class Subscription(models.Model):
         if now is None:
             now = timezone.now()
         return self.trial_end_at > now
+
+
+class DripCampaign(models.Model):
+    """A drip campaign is a sequence of automated messages sent to a contact over time."""
+
+    ACTIVE = "active"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    CANCELED = "canceled"
+
+    STATUS_CHOICES = [
+        (ACTIVE, "Active"),
+        (PAUSED, "Paused"),
+        (COMPLETED, "Completed"),
+        (CANCELED, "Canceled"),
+    ]
+
+    contact = models.OneToOneField(
+        "contacts.Contact", on_delete=models.CASCADE, related_name="drip_campaign"
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=ACTIVE)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    paused_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self) -> str:
+        return f"Drip for {self.contact.email} ({self.status})"
+
+
+class DripCampaignStep(models.Model):
+    """A step in a drip campaign sequence."""
+
+    campaign = models.ForeignKey(
+        DripCampaign, on_delete=models.CASCADE, related_name="steps"
+    )
+    order = models.PositiveIntegerField(default=0)
+    delay_days = models.PositiveIntegerField(
+        default=0, help_text="Days to wait before sending this step"
+    )
+    template_name = models.CharField(max_length=255, blank=True)
+    subject = models.CharField(max_length=255, blank=True)
+    body = models.TextField(blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order"]
+        unique_together = ("campaign", "order")
+
+    def __str__(self) -> str:
+        return f"Step {self.order} of {self.campaign} - {self.subject or 'No Subject'}"

@@ -97,7 +97,19 @@ export function ContactsList({ initialContacts }: ContactsListProps) {
                       Company
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Type
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                       Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Pref
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Cadence
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Drip
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                       Next Follow-Up
@@ -129,6 +141,9 @@ export function ContactsList({ initialContacts }: ContactsListProps) {
                       <td className="px-6 py-4 text-gray-600">
                         {contact.company || '-'}
                       </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {contact.contact_type || '-'}
+                      </td>
                       <td className="px-6 py-4">
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
@@ -138,6 +153,9 @@ export function ContactsList({ initialContacts }: ContactsListProps) {
                           {contact.status}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-gray-600">{contact.contact_pref || '-'}</td>
+                      <td className="px-6 py-4 text-gray-600">{contact.contact_cadence || '-'}</td>
+                      <td className="px-6 py-4 text-gray-600">{contact.drip_campaign_enabled ? 'Yes' : 'No'}</td>
                       <td className="px-6 py-4 text-gray-600 text-sm">
                         {formatDate(contact.next_follow_up_at)}
                       </td>
@@ -185,6 +203,18 @@ export function ContactsList({ initialContacts }: ContactsListProps) {
                         {contact.company}
                       </div>
                     )}
+                    <div className="text-gray-600">
+                      <strong>Type:</strong> {contact.contact_type || '-'}
+                    </div>
+                    <div className="text-gray-600">
+                      <strong>Pref:</strong> {contact.contact_pref || '-'}
+                    </div>
+                    <div className="text-gray-600">
+                      <strong>Cadence:</strong> {contact.contact_cadence || '-'}
+                    </div>
+                    <div className="text-gray-600">
+                      <strong>Drip:</strong> {contact.drip_campaign_enabled ? 'Yes' : 'No'}
+                    </div>
                     {contact.next_follow_up_at && (
                       <div className="text-gray-600">
                         <strong>Next Follow-Up:</strong>{' '}

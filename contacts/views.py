@@ -11,6 +11,36 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+def validate_drip_config(config):
+    """
+    Validate drip_campaign_config structure.
+    Returns (is_valid, error_message).
+    """
+    if config is None:
+        return True, None
+    
+    if isinstance(config, str):
+        try:
+            config = json.loads(config)
+        except json.JSONDecodeError as e:
+            return False, f"Drip config must be valid JSON: {str(e)}"
+    
+    if not isinstance(config, dict):
+        return False, "Drip config must be a JSON object"
+    
+    # Validate sequence array if present
+    if "sequence" in config:
+        if not isinstance(config["sequence"], list):
+            return False, "Drip sequence must be an array"
+        for i, step in enumerate(config["sequence"]):
+            if not isinstance(step, dict):
+                return False, f"Step {i} must be an object"
+            if "delay_days" in step and not isinstance(step["delay_days"], int):
+                return False, f"Step {i}: delay_days must be an integer"
+    
+    return True, None
+
+
 @require_http_methods(["GET"])
 def list_contacts(request):
     """
@@ -36,6 +66,11 @@ def list_contacts(request):
         "company",
         "status",
         "source",
+        "contact_type",
+        "contact_cadence",
+        "contact_pref",
+        "drip_campaign_enabled",
+        "drip_campaign_config",
         "next_follow_up_at",
         "last_contacted_at",
         "created_at",
@@ -80,6 +115,15 @@ def create_contact(request):
                 status=400,
             )
 
+    # Validate drip config if provided
+    if "drip_campaign_config" in payload:
+        is_valid, error_msg = validate_drip_config(payload.get("drip_campaign_config"))
+        if not is_valid:
+            return JsonResponse(
+                {"error": error_msg},
+                status=400,
+            )
+
     try:
         contact = Contact.objects.create(
             owner=user,
@@ -89,6 +133,20 @@ def create_contact(request):
             company=payload.get("company", "").strip(),
             source=payload.get("source", "").strip(),
             status=payload.get("status", Contact._meta.get_field("status").default),
+            contact_type=payload.get(
+                "contact_type", Contact._meta.get_field("contact_type").default
+            ),
+            contact_cadence=payload.get(
+                "contact_cadence",
+                Contact._meta.get_field("contact_cadence").default,
+            ),
+            contact_pref=payload.get(
+                "contact_pref", Contact._meta.get_field("contact_pref").default
+            ),
+            drip_campaign_enabled=payload.get(
+                "drip_campaign_enabled", False
+            ),
+            drip_campaign_config=payload.get("drip_campaign_config", None),
         )
 
         return JsonResponse(
@@ -101,6 +159,11 @@ def create_contact(request):
                     "company": contact.company,
                     "status": contact.status,
                     "source": contact.source,
+                    "contact_type": contact.contact_type,
+                    "contact_cadence": contact.contact_cadence,
+                    "contact_pref": contact.contact_pref,
+                    "drip_campaign_enabled": contact.drip_campaign_enabled,
+                    "drip_campaign_config": contact.drip_campaign_config,
                     "next_follow_up_at": contact.next_follow_up_at.isoformat()
                     if contact.next_follow_up_at
                     else None,
@@ -120,6 +183,205 @@ def create_contact(request):
             {"error": "Failed to create contact"},
             status=500,
         )
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PATCH", "DELETE"])
+def contact_detail(request, contact_id):
+    """
+    GET /api/contacts/{id}/ - Get a contact by ID
+    PATCH /api/contacts/{id}/ - Update a contact
+    DELETE /api/contacts/{id}/ - Delete a contact
+    """
+    user_id = getattr(request, 'mock_user_id', None) or 1
+    try:
+        user = User.objects.get(id=user_id)
+        contact = Contact.objects.get(id=contact_id, owner=user)
+    except (User.DoesNotExist, Contact.DoesNotExist):
+        return JsonResponse(
+            {"error": "Contact not found"},
+            status=404,
+        )
+
+    if request.method == "GET":
+        return JsonResponse(
+            {
+                "data": {
+                    "id": contact.id,
+                    "first_name": contact.first_name,
+                    "last_name": contact.last_name,
+                    "email": contact.email,
+                    "company": contact.company,
+                    "status": contact.status,
+                    "source": contact.source,
+                    "contact_type": contact.contact_type,
+                    "contact_cadence": contact.contact_cadence,
+                    "contact_pref": contact.contact_pref,
+                    "drip_campaign_enabled": contact.drip_campaign_enabled,
+                    "drip_campaign_config": contact.drip_campaign_config,
+                    "next_follow_up_at": contact.next_follow_up_at.isoformat()
+                    if contact.next_follow_up_at
+                    else None,
+                    "last_contacted_at": contact.last_contacted_at.isoformat()
+                    if contact.last_contacted_at
+                    else None,
+                    "notes": contact.notes,
+                    "created_at": contact.created_at.isoformat(),
+                    "updated_at": contact.updated_at.isoformat(),
+                }
+            },
+            status=200,
+        )
+
+    if request.method == "DELETE":
+        contact.delete()
+        return JsonResponse({"data": {"id": contact_id}}, status=200)
+
+    if request.method == "PATCH":
+        try:
+            payload = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"error": "Invalid JSON in request body"},
+                status=400,
+            )
+
+        # Validate drip config if provided
+        if "drip_campaign_config" in payload:
+            is_valid, error_msg = validate_drip_config(
+                payload.get("drip_campaign_config")
+            )
+            if not is_valid:
+                return JsonResponse(
+                    {"error": error_msg},
+                    status=400,
+                )
+
+        # Update allowed fields
+        allowed_fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "company",
+            "source",
+            "status",
+            "contact_type",
+            "contact_cadence",
+            "contact_pref",
+            "drip_campaign_enabled",
+            "drip_campaign_config",
+            "next_follow_up_at",
+            "last_contacted_at",
+            "notes",
+        ]
+        for field in allowed_fields:
+            if field in payload:
+                setattr(contact, field, payload[field])
+
+        contact.save()
+
+        return JsonResponse(
+            {
+                "data": {
+                    "id": contact.id,
+                    "first_name": contact.first_name,
+                    "last_name": contact.last_name,
+                    "email": contact.email,
+                    "company": contact.company,
+                    "status": contact.status,
+                    "source": contact.source,
+                    "contact_type": contact.contact_type,
+                    "contact_cadence": contact.contact_cadence,
+                    "contact_pref": contact.contact_pref,
+                    "drip_campaign_enabled": contact.drip_campaign_enabled,
+                    "drip_campaign_config": contact.drip_campaign_config,
+                    "next_follow_up_at": contact.next_follow_up_at.isoformat()
+                    if contact.next_follow_up_at
+                    else None,
+                    "last_contacted_at": contact.last_contacted_at.isoformat()
+                    if contact.last_contacted_at
+                    else None,
+                    "notes": contact.notes,
+                    "created_at": contact.created_at.isoformat(),
+                    "updated_at": contact.updated_at.isoformat(),
+                }
+            },
+            status=200,
+        )
+
+
+@require_http_methods(["GET"])
+def export_contacts_csv(request):
+    """
+    GET /api/contacts/export/csv/
+    Export all contacts as CSV for the authenticated user.
+    """
+    import csv
+    from io import StringIO
+
+    user_id = getattr(request, 'mock_user_id', None) or 1
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"error": "User not found"},
+            status=404,
+        )
+
+    contacts = Contact.objects.filter(owner=user).order_by("-updated_at")
+
+    output = StringIO()
+    fieldnames = [
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "company",
+        "status",
+        "source",
+        "contact_type",
+        "contact_cadence",
+        "contact_pref",
+        "drip_campaign_enabled",
+        "drip_campaign_config",
+        "next_follow_up_at",
+        "last_contacted_at",
+        "created_at",
+        "updated_at",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+
+    for contact in contacts:
+        writer.writerow({
+            "id": contact.id,
+            "first_name": contact.first_name,
+            "last_name": contact.last_name,
+            "email": contact.email,
+            "company": contact.company,
+            "status": contact.status,
+            "source": contact.source,
+            "contact_type": contact.contact_type,
+            "contact_cadence": contact.contact_cadence,
+            "contact_pref": contact.contact_pref,
+            "drip_campaign_enabled": contact.drip_campaign_enabled,
+            "drip_campaign_config": json.dumps(contact.drip_campaign_config)
+            if contact.drip_campaign_config
+            else "",
+            "next_follow_up_at": contact.next_follow_up_at.isoformat()
+            if contact.next_follow_up_at
+            else "",
+            "last_contacted_at": contact.last_contacted_at.isoformat()
+            if contact.last_contacted_at
+            else "",
+            "created_at": contact.created_at.isoformat(),
+            "updated_at": contact.updated_at.isoformat(),
+        })
+
+    response = JsonResponse({"data": output.getvalue()}, status=200)
+    response["Content-Disposition"] = "attachment; filename=contacts.csv"
+    response["Content-Type"] = "text/csv"
+    return response
 
 
 @csrf_exempt

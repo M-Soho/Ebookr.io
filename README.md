@@ -179,11 +179,16 @@ This user is displayed in the top-right of the navbar. When real authentication 
 ## Models
 
 ### contacts.Contact
-CRM contact with follow-up tracking:
+CRM contact with follow-up tracking and enriched fields:
 - `owner` – ForeignKey to auth.User
 - `first_name`, `last_name`, `email`, `company`
 - `status` – choices: lead, active, inactive, lost
 - `source` – where contact came from
+- `contact_type` – choices: contact, company (enrichment field)
+- `contact_cadence` – choices: none, daily, weekly, monthly, quarterly, annual (follow-up frequency)
+- `contact_pref` – choices: email, phone, sms, none (preferred communication method)
+- `drip_campaign_enabled` – boolean flag to enable/disable drip campaigns
+- `drip_campaign_config` – JSON field for drip sequence configuration
 - `next_follow_up_at`, `last_contacted_at` – timestamps for follow-up scheduling
 - `notes` – rich text notes
 - Indexed on `(owner, email)` for fast lookups
@@ -214,6 +219,25 @@ Stripe subscription with trial tracking:
 - `current_period_start`, `current_period_end` – billing period
 - `cancel_at_period_end` – schedule cancellation
 - Helper method: `is_trial_active(now=None)` – checks if trial is active
+
+### billing.DripCampaign
+Structured drip campaign for contacts:
+- `contact` – OneToOneField to Contact (related_name="drip_campaign")
+- `status` – choices: active, paused, completed, canceled
+- `started_at`, `completed_at`, `paused_at` – campaign lifecycle timestamps
+- `created_at`, `updated_at` – record timestamps
+- Related steps: access via `drip_campaign.steps.all()`
+
+### billing.DripCampaignStep
+Individual step in a drip sequence:
+- `campaign` – ForeignKey to DripCampaign (related_name="steps")
+- `order` – PositiveIntegerField for step ordering
+- `delay_days` – days to delay before sending this step
+- `template_name` – name of email template to use
+- `subject` – email subject line
+- `body` – email body content
+- `sent_at` – timestamp when step was actually sent
+- Unique constraint on (campaign, order)
 
 ## API Endpoints
 
@@ -253,13 +277,19 @@ Response:
 ```bash
 curl -X POST http://localhost:8000/api/contacts/ \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer mock-token-1" \
   -d '{
     "first_name": "Jane",
     "last_name": "Smith",
     "email": "jane@example.com",
     "company": "TechCorp",
     "source": "Referral",
-    "status": "active"
+    "status": "active",
+    "contact_type": "contact",
+    "contact_cadence": "weekly",
+    "contact_pref": "email",
+    "drip_campaign_enabled": true,
+    "drip_campaign_config": {"sequence": [{"delay_days": 0, "template": "Welcome"}]}
   }'
 ```
 
@@ -274,11 +304,112 @@ Response (201 Created):
     "company": "TechCorp",
     "status": "active",
     "source": "Referral",
+    "contact_type": "contact",
+    "contact_cadence": "weekly",
+    "contact_pref": "email",
+    "drip_campaign_enabled": true,
+    "drip_campaign_config": {"sequence": [{"delay_days": 0, "template": "Welcome"}]},
+    "next_follow_up_at": null,
+    "last_contacted_at": null,
     "created_at": "2025-12-09T10:35:00Z",
     "updated_at": "2025-12-09T10:35:00Z"
   }
 }
 ```
+
+**GET /api/contacts/{id}/** – Get a single contact by ID
+
+```bash
+curl http://localhost:8000/api/contacts/1/ \
+  -H "Authorization: Bearer mock-token-1"
+```
+
+Response:
+```json
+{
+  "data": {
+    "id": 1,
+    "first_name": "Jane",
+    "last_name": "Smith",
+    "email": "jane@example.com",
+    "company": "TechCorp",
+    "status": "active",
+    "source": "Referral",
+    "contact_type": "contact",
+    "contact_cadence": "weekly",
+    "contact_pref": "email",
+    "drip_campaign_enabled": true,
+    "drip_campaign_config": {"sequence": [{"delay_days": 0, "template": "Welcome"}]},
+    "next_follow_up_at": null,
+    "last_contacted_at": null,
+    "notes": "Important lead",
+    "created_at": "2025-12-09T10:35:00Z",
+    "updated_at": "2025-12-09T10:35:00Z"
+  }
+}
+```
+
+**PATCH /api/contacts/{id}/** – Update a contact
+
+```bash
+curl -X PATCH http://localhost:8000/api/contacts/1/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer mock-token-1" \
+  -d '{
+    "contact_cadence": "monthly",
+    "contact_pref": "phone",
+    "notes": "Updated notes"
+  }'
+```
+
+Response (200 OK):
+```json
+{
+  "data": {
+    "id": 1,
+    "first_name": "Jane",
+    "last_name": "Smith",
+    "email": "jane@example.com",
+    "company": "TechCorp",
+    "status": "active",
+    "source": "Referral",
+    "contact_type": "contact",
+    "contact_cadence": "monthly",
+    "contact_pref": "phone",
+    "drip_campaign_enabled": true,
+    "drip_campaign_config": {"sequence": [{"delay_days": 0, "template": "Welcome"}]},
+    "notes": "Updated notes",
+    "created_at": "2025-12-09T10:35:00Z",
+    "updated_at": "2025-12-09T10:40:00Z"
+  }
+}
+```
+
+**DELETE /api/contacts/{id}/** – Delete a contact
+
+```bash
+curl -X DELETE http://localhost:8000/api/contacts/1/ \
+  -H "Authorization: Bearer mock-token-1"
+```
+
+Response (200 OK):
+```json
+{
+  "data": {
+    "id": 1
+  }
+}
+```
+
+**GET /api/contacts/export/csv/** – Export all contacts as CSV
+
+```bash
+curl http://localhost:8000/api/contacts/export/csv/ \
+  -H "Authorization: Bearer mock-token-1" \
+  -o contacts.csv
+```
+
+Response: CSV file with all contacts and their fields
 
 ### Billing API
 
@@ -364,10 +495,25 @@ stripe trigger customer.subscription.created
 - Upgrade CTA with plan selection buttons
 
 **Contacts (`/contacts`)**
-- List all contacts in table (desktop) or cards (mobile)
-- "New Contact" button opens modal dialog
+- List all contacts in table (desktop) or cards (mobile) with rich fields displayed
+- Shows: Name, Email, Company, Type, Status, Preference, Cadence, Drip Status, Follow-up dates
+- Actions per contact:
+  - **View Details** – Click name to navigate to contact detail page (`/contacts/{id}`)
+  - **Edit Contact** – Edit button (pencil icon) opens EditContactModal for inline updates
+  - **Email Link** – Click email to compose email
+- "New Contact" button opens NewContactModal for creating contacts
+- "Export CSV" button downloads all contacts with all fields
 - Empty state with instructions
 - Uses server-side data fetching for initial load
+
+**Contact Details (`/contacts/{id}`)**
+- Server-side rendered contact detail page
+- Shows all contact fields including enriched fields (type, cadence, preference, drip config)
+- Displays drip campaign configuration as formatted JSON
+- Shows contact notes
+- "Edit Contact" button to modify any field
+- Back link to contacts list
+- Accessible via clicking contact name in list or detail page
 
 **Settings (`/settings`)**
 - **Profile Section** – Read-only display of name, email, member since date
@@ -413,7 +559,16 @@ Accessible modal for creating contacts:
 - Uses `useTransition` for optimistic form submission
 - Calls `createContact()`, closes modal, refreshes page on success
 - Error alert for failed submissions
-- Required fields: First Name, Email
+- Form fields: First Name*, Last Name, Email*, Company, Source, Status, Type, Cadence, Preference, Drip Config
+- Support for enriched contact fields (type, cadence, preference)
+- Optional drip campaign configuration with JSON validation
+
+**`EditContactModal.tsx` – Inline Contact Editing**
+Modal for updating existing contacts:
+- Similar to NewContactModal but with pre-filled form values
+- Calls `updateContact(id, payload)` instead of `createContact()`
+- Triggered by Edit button from contacts list
+- Full field support matching NewContactModal
 
 **`TrialBanner.tsx` – Dismissible Trial Status**
 Shows trial end date with dismiss button:
@@ -601,14 +756,57 @@ Check for TypeScript errors:
 npm run lint
 ```
 
+## Features & Capabilities
+
+### Contact Management ✅
+- **Rich Contact Fields** – Type (contact/company), cadence, preference, notes
+- **Create Contacts** – Via modal with enriched fields and validation
+- **View Contact Details** – Dedicated detail page with full information
+- **Edit Contacts** – Update any field via inline modal (PATCH endpoint)
+- **Delete Contacts** – Remove contacts from database
+- **List Contacts** – Table view (desktop) or card view (mobile) with sorting
+- **Search/Filter** – Basic name/email visibility in list
+- **Export Data** – CSV export of all contacts with all fields
+
+### Follow-up Management ✅
+- **Contact Cadence** – Define follow-up frequency (daily, weekly, monthly, etc.)
+- **Contact Preferences** – Specify preferred communication method (email, phone, SMS)
+- **Follow-up Dates** – Track next follow-up and last contacted timestamps
+- **Notes** – Store rich text notes per contact
+
+### Drip Campaigns ✅ (Foundation)
+- **Structured Models** – DripCampaign and DripCampaignStep models for campaign management
+- **Campaign Configuration** – Store drip sequence as JSON with server-side validation
+- **Campaign Status** – Track campaign state (active, paused, completed, canceled)
+- **Step Tracking** – Individual step monitoring with delay_days, templates, and sent_at
+- Ready for automation integration and email sending
+
+### API Features ✅
+- **RESTful Endpoints** – GET, POST, PATCH, DELETE on `/api/contacts/`
+- **Server-side Validation** – Drip config JSON validation with helpful errors
+- **Authorization** – Bearer token authentication (mock auth for dev)
+- **CSV Export** – Bulk data export endpoint `/api/contacts/export/csv/`
+- **Proper HTTP Status Codes** – 201 Created, 404 Not Found, 400 Bad Request, 200 OK
+
+### Frontend Features ✅
+- **Responsive Design** – Mobile-first approach with desktop optimizations
+- **Rich Modals** – NewContactModal and EditContactModal with full field support
+- **Detail Pages** – Individual contact view with all enriched information
+- **Action Buttons** – Edit, View, Delete, Export actions
+- **Error Handling** – User-friendly error messages and validation feedback
+- **Loading States** – Transitions and spinners for async operations
+- **Type Safety** – Full TypeScript support with Contact interface
+
 ## Next Steps
 
 - [ ] **Real Authentication** – Integrate Supabase Auth (replace `lib/auth.ts`)
 - [ ] **Email Sending** – SendGrid or AWS SES integration for follow-ups
-- [ ] **Contact Management** – Update/delete endpoints and UI
+- [ ] **Drip Campaign Automation** – Celery tasks to trigger drip campaigns
+- [ ] **Drip Sequence Editor** – Visual UI to build drip sequences instead of JSON textarea
 - [ ] **Follow-up Rules UI** – Dashboard for managing automation rules
-- [ ] **Search & Filtering** – Advanced contact search in frontend
-- [ ] **Analytics Dashboard** – Contact pipeline and metrics visualization
+- [ ] **Search & Filtering** – Advanced contact search (by company, source, status)
+- [ ] **Analytics Dashboard** – Contact pipeline, conversion metrics, follow-up statistics
+- [ ] **Bulk Operations** – Bulk edit, bulk delete, bulk tag/categorize contacts
 - [ ] **Test Suite** – Unit/integration tests for backend and frontend
 - [ ] **CI/CD Pipeline** – GitHub Actions for automated testing and deployment
 - [ ] **Production Deployment** – Vercel (frontend), Railway/AWS (backend)

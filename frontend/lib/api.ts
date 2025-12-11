@@ -19,6 +19,11 @@ export interface Contact {
   company: string
   status: 'lead' | 'active' | 'inactive' | 'lost'
   source: string
+  contact_type: 'contact' | 'company'
+  contact_cadence: 'none' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
+  contact_pref: 'email' | 'phone' | 'sms' | 'none'
+  drip_campaign_enabled: boolean
+  drip_campaign_config: any | null
   next_follow_up_at: string | null
   last_contacted_at: string | null
   notes: string
@@ -37,6 +42,11 @@ export interface CreateContactPayload {
   source?: string
   status?: Contact['status']
   notes?: string
+  contact_type?: Contact['contact_type']
+  contact_cadence?: Contact['contact_cadence']
+  contact_pref?: Contact['contact_pref']
+  drip_campaign_enabled?: boolean
+  drip_campaign_config?: any
 }
 
 /**
@@ -252,5 +262,68 @@ export async function getSubscription(): Promise<Subscription | null> {
   } catch (error) {
     // If endpoint doesn't exist or fails, return null
     return null
+  }
+}
+
+/**
+ * Export all contacts as CSV
+ * Triggers a browser download of the CSV file
+ */
+export async function exportContactsCSV(): Promise<void> {
+  const fullUrl = `${API_BASE_URL}/api/contacts/export/csv/`
+
+  try {
+    // Attach Authorization header
+    const headers: Record<string, string> = {}
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('mock_session')
+        if (raw) {
+          const session = JSON.parse(raw)
+          if (session && session.access_token) {
+            headers['Authorization'] = `Bearer ${session.access_token}`
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+      // Try supabase session as fallback
+      try {
+        const { data } = supabase.getSession()
+        const token = data?.session?.access_token
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const response = await fetch(fullUrl, {
+      method: 'GET',
+      headers,
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    // Get the CSV blob
+    const blob = await response.blob()
+
+    // Create a temporary download link and click it
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'contacts.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Failed to export contacts')
   }
 }

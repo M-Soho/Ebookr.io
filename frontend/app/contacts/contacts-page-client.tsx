@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Contact } from '@/lib/api'
+import Link from 'next/link'
+import { Contact, exportContactsCSV } from '@/lib/api'
 import { NewContactModal } from '@/components/NewContactModal'
+import { EditContactModal } from '@/components/EditContactModal'
 import CreateContactDemo from '@/components/CreateContactDemo'
-import { Plus, Mail, Building2 } from 'lucide-react'
+import { Plus, Mail, Building2, Pencil, Download } from 'lucide-react'
 
 interface ContactsPageClientProps {
   initialContacts: Contact[]
@@ -15,6 +17,9 @@ export function ContactsPageClient({
 }: ContactsPageClientProps) {
   const [contacts, setContacts] = useState<Contact[]>(initialContacts)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingContact, setEditingContact] = useState<Contact | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -36,6 +41,23 @@ export function ContactsPageClient({
     return new Date(dateString).toLocaleDateString()
   }
 
+  const handleEditContact = (contact: Contact) => {
+    setEditingContact(contact)
+    setIsEditModalOpen(true)
+  }
+
+  const handleExportCSV = async () => {
+    setIsExporting(true)
+    try {
+      await exportContactsCSV()
+    } catch (error) {
+      console.error('Failed to export CSV:', error)
+      alert('Failed to export contacts. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <>
       <div className="space-y-6">
@@ -51,6 +73,14 @@ export function ContactsPageClient({
             <CreateContactDemo
               onCreated={(c) => setContacts((s) => [c, ...s])}
             />
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className="flex items-center gap-2 bg-gray-200 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download size={20} />
+              {isExporting ? 'Exporting...' : 'Export CSV'}
+            </button>
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -101,13 +131,28 @@ export function ContactsPageClient({
                       Company
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Type
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                       Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Pref
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Cadence
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Drip
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                       Next Follow-Up
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                       Last Contacted
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -118,9 +163,12 @@ export function ContactsPageClient({
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-6 py-4">
-                        <p className="font-medium text-gray-900">
+                        <Link
+                          href={`/contacts/${contact.id}`}
+                          className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        >
                           {contact.first_name} {contact.last_name}
-                        </p>
+                        </Link>
                       </td>
                       <td className="px-6 py-4">
                         <a
@@ -133,6 +181,9 @@ export function ContactsPageClient({
                       <td className="px-6 py-4 text-gray-600">
                         {contact.company || '-'}
                       </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {contact.contact_type || '-'}
+                      </td>
                       <td className="px-6 py-4">
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
@@ -142,11 +193,24 @@ export function ContactsPageClient({
                           {contact.status}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-gray-600">{contact.contact_pref || '-'}</td>
+                      <td className="px-6 py-4 text-gray-600">{contact.contact_cadence || '-'}</td>
+                      <td className="px-6 py-4 text-gray-600">{contact.drip_campaign_enabled ? 'Yes' : 'No'}</td>
                       <td className="px-6 py-4 text-gray-600 text-sm">
                         {formatDate(contact.next_follow_up_at)}
                       </td>
                       <td className="px-6 py-4 text-gray-600 text-sm">
                         {formatDate(contact.last_contacted_at)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleEditContact(contact)}
+                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+                          title="Edit contact"
+                        >
+                          <Pencil size={16} />
+                          <span className="text-sm">Edit</span>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -163,9 +227,12 @@ export function ContactsPageClient({
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-gray-900">
+                      <Link
+                        href={`/contacts/${contact.id}`}
+                        className="font-semibold text-blue-600 hover:text-blue-800 hover:underline block"
+                      >
                         {contact.first_name} {contact.last_name}
-                      </h3>
+                      </Link>
                       <a
                         href={`mailto:${contact.email}`}
                         className="text-blue-600 text-sm hover:underline"
@@ -173,13 +240,22 @@ export function ContactsPageClient({
                         {contact.email}
                       </a>
                     </div>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${getStatusColor(
-                        contact.status
-                      )}`}
-                    >
-                      {contact.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${getStatusColor(
+                          contact.status
+                        )}`}
+                      >
+                        {contact.status}
+                      </span>
+                      <button
+                        onClick={() => handleEditContact(contact)}
+                        className="inline-flex text-blue-600 hover:text-blue-800 transition-colors"
+                        title="Edit contact"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-2 text-sm">
@@ -189,6 +265,18 @@ export function ContactsPageClient({
                         {contact.company}
                       </div>
                     )}
+                    <div className="text-gray-600">
+                      <strong>Type:</strong> {contact.contact_type || '-'}
+                    </div>
+                    <div className="text-gray-600">
+                      <strong>Pref:</strong> {contact.contact_pref || '-'}
+                    </div>
+                    <div className="text-gray-600">
+                      <strong>Cadence:</strong> {contact.contact_cadence || '-'}
+                    </div>
+                    <div className="text-gray-600">
+                      <strong>Drip:</strong> {contact.drip_campaign_enabled ? 'Yes' : 'No'}
+                    </div>
                     {contact.next_follow_up_at && (
                       <div className="text-gray-600">
                         <strong>Next Follow-Up:</strong>{' '}
@@ -211,6 +299,15 @@ export function ContactsPageClient({
 
       {/* New Contact Modal */}
       <NewContactModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+
+      {/* Edit Contact Modal */}
+      {editingContact && (
+        <EditContactModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          contact={editingContact}
+        />
+      )}
     </>
   )
 }
