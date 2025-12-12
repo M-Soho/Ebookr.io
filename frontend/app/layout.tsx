@@ -57,6 +57,12 @@ export default async function RootLayout({
                 >
                   Reports
                 </Link>
+                <Link
+                  href="/admin/signin"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Admin
+                </Link>
               </div>
 
               {/* User Info (Top Right) */}
