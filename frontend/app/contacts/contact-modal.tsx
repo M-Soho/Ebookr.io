@@ -23,7 +23,7 @@ export function ContactModal({
     email: '',
     company: '',
     source: '',
-    status: 'lead' as const,
+    status: 'lead' as Contact['status'],
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,7 +166,7 @@ export function ContactModal({
               Status
             </label>
             <select
-              value={formData.status}
+              value={formData.status || ''}
               onChange={(e) =>
                 setFormData({
                   ...formData,

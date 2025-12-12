@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
-import { getTrialStatus } from '@/lib/api'
 import { getCurrentUser } from '@/lib/auth'
 import dynamic from 'next/dynamic'
-import { TrialBanner } from '@/components/TrialBanner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -25,20 +23,9 @@ export default async function RootLayout({
     ssr: false,
   })
 
-  let trialStatus = null
-  try {
-    trialStatus = await getTrialStatus()
-  } catch (error) {
-    // Silently fail if trial status endpoint is not available
-  }
-
   return (
     <html lang="en">
       <body className="bg-gray-50">
-        {/* Trial Banner */}
-        {trialStatus?.status === 'trialing' && trialStatus.trial_ends_at && (
-          <TrialBanner trialEndsAt={trialStatus.trial_ends_at} />
-        )}
 
         <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,6 +50,12 @@ export default async function RootLayout({
                   className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                 >
                   Settings
+                </Link>
+                <Link
+                  href="/reports"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Reports
                 </Link>
               </div>
 

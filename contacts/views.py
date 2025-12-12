@@ -3,6 +3,7 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.db.models import Count
 from django.contrib.auth import get_user_model
 
 from contacts.models import Contact
@@ -396,3 +397,55 @@ def contacts_api(request):
     if request.method == "POST":
         return create_contact(request)
     return JsonResponse({"error": "Method not allowed"}, status=405)
+
+
+@require_http_methods(["GET"])
+def drip_campaigns_report(request):
+    """
+    GET /api/reports/drip-campaigns/
+    Return aggregated statistics for drip campaigns belonging to the authenticated user.
+    """
+    user_id = getattr(request, 'mock_user_id', None) or 1
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
+
+    # Import here to avoid potential circular import at module load
+    from billing.models import DripCampaign
+
+    campaigns_qs = DripCampaign.objects.filter(contact__owner=user).order_by("-updated_at")
+
+    total_campaigns = campaigns_qs.count()
+
+    # counts by status
+    status_counts = {}
+    for item in campaigns_qs.values('status').annotate(count=Count('id')):
+        status_counts[item['status']] = item['count']
+
+    campaigns = []
+    for c in campaigns_qs:
+        steps_total = c.steps.count()
+        steps_sent = c.steps.filter(sent_at__isnull=False).count()
+        last_sent = c.steps.filter(sent_at__isnull=False).order_by('-sent_at').first()
+        campaigns.append({
+            "campaign_id": c.id,
+            "contact_id": c.contact.id,
+            "contact_email": c.contact.email,
+            "status": c.status,
+            "steps_total": steps_total,
+            "steps_sent": steps_sent,
+            "started_at": c.started_at.isoformat() if c.started_at else None,
+            "completed_at": c.completed_at.isoformat() if c.completed_at else None,
+            "last_step_sent_at": last_sent.sent_at.isoformat() if last_sent and last_sent.sent_at else None,
+            "created_at": c.created_at.isoformat(),
+            "updated_at": c.updated_at.isoformat(),
+        })
+
+    return JsonResponse({
+        "data": {
+            "total_campaigns": total_campaigns,
+            "counts_by_status": status_counts,
+            "campaigns": campaigns,
+        }
+    }, status=200)

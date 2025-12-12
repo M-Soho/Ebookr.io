@@ -266,6 +266,43 @@ export async function getSubscription(): Promise<Subscription | null> {
 }
 
 /**
+ * Drip campaign report types
+ */
+export interface DripCampaignSummary {
+  campaign_id: number
+  contact_id: number
+  contact_email: string
+  status: string
+  steps_total: number
+  steps_sent: number
+  started_at: string | null
+  completed_at: string | null
+  last_step_sent_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface DripCampaignsReport {
+  total_campaigns: number
+  counts_by_status: Record<string, number>
+  campaigns: DripCampaignSummary[]
+}
+
+/**
+ * Fetch drip campaigns report from backend
+ */
+export async function getDripCampaignsReport(): Promise<DripCampaignsReport> {
+  try {
+    return await apiRequest<DripCampaignsReport>('/api/reports/drip-campaigns/', {
+      method: 'GET',
+    })
+  } catch (error) {
+    // If backend isn't available, throw to let caller fallback to mock data
+    throw error
+  }
+}
+
+/**
  * Export all contacts as CSV
  * Triggers a browser download of the CSV file
  */

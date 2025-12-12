@@ -9,7 +9,7 @@ export const metadata = {
 export default async function ContactsPage() {
   // TODO: Once real auth is wired (Supabase), pass the actual user ID to getContacts()
   // For now, the backend uses the fake auth user ID (1) from lib/auth.ts
-  let contacts = []
+  let contacts: any[] = []
   let error: string | null = null
 
   try {

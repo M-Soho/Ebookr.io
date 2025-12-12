@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic.base import RedirectView
 from billing.views import stripe_webhook, trial_status, get_subscription, create_checkout_session
-from contacts.views import contacts_api, contact_detail, export_contacts_csv
+from contacts.views import contacts_api, contact_detail, export_contacts_csv, drip_campaigns_report
 
 urlpatterns = [
     # Redirect root to the frontend dev server
@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('stripe/webhook/', stripe_webhook, name='stripe_webhook'),
     path('api/contacts/export/csv/', export_contacts_csv, name='export_contacts_csv'),
+    path('api/reports/drip-campaigns/', drip_campaigns_report, name='drip_campaigns_report'),
     path('api/contacts/<int:contact_id>/', contact_detail, name='contact_detail'),
     path('api/contacts/', contacts_api, name='contacts_api'),
     path('api/billing/trial-status/', trial_status, name='trial_status'),
