@@ -2,6 +2,8 @@
 
 A full-stack SaaS platform for freelancer CRM with automated follow-ups and AI-powered features. Built with Django 5 + Celery 5 backend and Next.js 14 frontend.
 
+**Admin Panel**: Comprehensive management interface for signups, API integrations, email configuration, settings, and analytics. See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for full documentation.
+
 ## Features
 
 ### Core CRM
@@ -9,6 +11,14 @@ A full-stack SaaS platform for freelancer CRM with automated follow-ups and AI-p
 - **Drip Campaigns** – Set up automated email sequences with configurable delays
 - **Follow-up Tracking** – Schedule and track follow-ups with timestamps
 - **Reports & Analytics** – Monitor campaign performance and contact engagement
+
+### Admin Panel
+- **Dashboard** – Real-time metrics (signups, contacts, campaigns)
+- **Signup Management** – View and analyze user registrations by tier
+- **API Configuration** – Manage integrations (Stripe, SendGrid, Mailgun, Twilio, Anthropic)
+- **Email Configuration** – Configure email providers (SendGrid, Mailgun, SMTP)
+- **Global Settings** – Control feature flags, trial period, rate limiting
+- **Advanced Reports** – Signup trends, tier distribution, contact statistics, campaign metrics
 
 ### Tier-Based Pricing
 
@@ -282,6 +292,13 @@ Individual step in a drip sequence:
 | `/reports/drip` | `reports/drip/page.tsx` | Drip campaigns report |
 | `/settings` | `settings/page.tsx` | Settings and configuration |
 | `/signin` | `signin/page.tsx` | Sign-in page |
+| `/admin/signin` | `admin/signin.tsx` | Admin authentication page |
+| `/admin` | `admin/page.tsx` | Admin dashboard with key metrics |
+| `/admin/signups` | `admin/signups/page.tsx` | Signup management and analytics |
+| `/admin/api-config` | `admin/api-config/page.tsx` | API integration configuration |
+| `/admin/email-config` | `admin/email-config/page.tsx` | Email provider settings |
+| `/admin/settings` | `admin/settings/page.tsx` | Global admin settings and feature flags |
+| `/admin/reports` | `admin/reports/page.tsx` | Comprehensive admin reports |
 
 ## API Endpoints
 
