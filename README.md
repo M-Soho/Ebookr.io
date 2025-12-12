@@ -1,6 +1,31 @@
 # Ebookr.io
 
-A full-stack SaaS platform for freelancer CRM with automated follow-ups. Built with Django 5 + Celery 5 backend and Next.js 14 frontend, featuring Stripe subscriptions, Redis broker, and PostgreSQL database.
+A full-stack SaaS platform for freelancer CRM with automated follow-ups and AI-powered features. Built with Django 5 + Celery 5 backend and Next.js 14 frontend.
+
+## Features
+
+### Core CRM
+- **Contact Management** – Organize unlimited contacts with custom fields (type, cadence, preference)
+- **Drip Campaigns** – Set up automated email sequences with configurable delays
+- **Follow-up Tracking** – Schedule and track follow-ups with timestamps
+- **Reports & Analytics** – Monitor campaign performance and contact engagement
+
+### Tier-Based Pricing
+
+**Starter (Free)**
+- Unlimited contacts
+- Basic contact management
+- Manual follow-up scheduling
+- Basic reports
+
+**Pro ($29/month)**
+- Everything in Starter
+- Automated drip campaigns
+- Advanced automation rules
+- AI-powered email suggestions
+- AI contact insights & scoring
+- Advanced analytics & reports
+- Priority support
 
 ## Stack
 
@@ -158,20 +183,26 @@ This user is displayed in the top-right of the navbar. When real authentication 
 │   ├── postcss.config.mjs       # PostCSS configuration
 │   ├── .env.example             # Frontend environment variables template
 │   ├── app/
-│   │   ├── layout.tsx           # Root layout with navbar, trial banner, footer
+│   │   ├── layout.tsx           # Root layout with navbar and footer
 │   │   ├── globals.css          # Global Tailwind directives
-│   │   ├── page.tsx             # Home page with features & upgrade CTA
+│   │   ├── page.tsx             # Landing page with features & pricing tiers
+│   │   ├── signup/
+│   │   │   └── page.tsx         # Signup page with tier selection
 │   │   ├── contacts/
 │   │   │   ├── page.tsx         # Contacts list (server component)
+│   │   │   ├── [id]/page.tsx    # Contact detail page
 │   │   │   └── contacts-page-client.tsx  # Contacts UI (client component)
+│   │   ├── reports/
+│   │   │   ├── page.tsx         # Reports index
+│   │   │   └── drip/page.tsx    # Drip campaigns report
 │   │   └── settings/
-│   │       └── page.tsx         # Settings page (profile + subscription)
+│   │       └── page.tsx         # Settings page
 │   ├── components/
 │   │   ├── NewContactModal.tsx  # Radix UI modal for creating contacts
-│   │   ├── TrialBanner.tsx      # Dismissible trial status banner
-│   │   └── UpgradeButton.tsx    # Stripe checkout CTA buttons
+│   │   ├── EditContactModal.tsx # Radix UI modal for editing contacts
+│   │   └── AuthClient.tsx       # Client-side auth display
 │   └── lib/
-│       ├── api.ts              # TypeScript API client (Contact, Trial, Subscription)
+│       ├── api.ts              # TypeScript API client (Contact, Reports, Drip)
 │       └── auth.ts             # Fake auth module (TODO: replace with Supabase)
 └── README.md                     # This file
 ```
@@ -239,7 +270,18 @@ Individual step in a drip sequence:
 - `sent_at` – timestamp when step was actually sent
 - Unique constraint on (campaign, order)
 
-## API Endpoints
+## Frontend Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/` | `page.tsx` | Landing page with features and pricing tiers |
+| `/signup` | `signup/page.tsx` | User signup form with tier selection |
+| `/contacts` | `contacts/page.tsx` | Contact list with create, edit, and export |
+| `/contacts/[id]` | `contacts/[id]/page.tsx` | Contact detail view |
+| `/reports` | `reports/page.tsx` | Reports index |
+| `/reports/drip` | `reports/drip/page.tsx` | Drip campaigns report |
+| `/settings` | `settings/page.tsx` | Settings and configuration |
+| `/signin` | `signin/page.tsx` | Sign-in page |
 
 ## API Endpoints
 
@@ -411,9 +453,46 @@ curl http://localhost:8000/api/contacts/export/csv/ \
 
 Response: CSV file with all contacts and their fields
 
+### Reports API
+
+**GET /api/reports/drip-campaigns/** – Get drip campaign statistics
+
+```bash
+curl http://localhost:8000/api/reports/drip-campaigns/ \
+  -H "Authorization: Bearer mock-token-1"
+```
+
+Response:
+```json
+{
+  "data": {
+    "total_campaigns": 3,
+    "counts_by_status": {
+      "active": 2,
+      "completed": 1
+    },
+    "campaigns": [
+      {
+        "campaign_id": 1,
+        "contact_id": 1,
+        "contact_email": "john@example.com",
+        "status": "active",
+        "steps_total": 3,
+        "steps_sent": 1,
+        "started_at": "2025-12-01T10:00:00Z",
+        "completed_at": null,
+        "last_step_sent_at": "2025-12-02T10:00:00Z",
+        "created_at": "2025-12-01T09:59:00Z",
+        "updated_at": "2025-12-02T10:00:00Z"
+      }
+    ]
+  }
+}
+```
+
 ### Billing API
 
-**GET /api/billing/trial-status/** – Get trial status for authenticated user
+**GET /api/billing/trial-status/** – Get trial status for authenticated user (deprecated)
 
 ```bash
 curl http://localhost:8000/api/billing/trial-status/
