@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'contacts',
     'billing',
     'automation',
+    'integrations',
     'admin_panel',
 ]
 

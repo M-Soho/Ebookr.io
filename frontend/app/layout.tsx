@@ -46,6 +46,18 @@ export default async function RootLayout({
                   Contacts
                 </Link>
                 <Link
+                  href="/automations"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Automations
+                </Link>
+                <Link
+                  href="/integrations"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Integrations
+                </Link>
+                <Link
                   href="/settings"
                   className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                 >

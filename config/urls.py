@@ -11,6 +11,25 @@ from admin_panel.views import (
     admin_settings,
     admin_reports,
 )
+from automation.views import (
+    automation_templates,
+    automation_campaigns,
+    automation_campaign_detail,
+    automation_calendar,
+    automation_stats,
+)
+from integrations.views import (
+    integrations_list,
+    integration_detail,
+    configure_email_integration,
+    configure_whatsapp_integration,
+    configure_sms_integration,
+    configure_signup_integration,
+    configure_facebook_integration,
+    test_integration,
+    integration_logs,
+    integration_stats,
+)
 
 urlpatterns = [
     # Redirect root to the frontend dev server
@@ -38,4 +57,23 @@ urlpatterns = [
     path('api/billing/trial-status/', trial_status, name='trial_status'),
     path('api/billing/subscription/', get_subscription, name='get_subscription'),
     path('api/billing/create-checkout-session/', create_checkout_session, name='create_checkout_session'),
+    
+    # Automation API
+    path('api/automation/templates/', automation_templates, name='automation_templates'),
+    path('api/automation/campaigns/', automation_campaigns, name='automation_campaigns'),
+    path('api/automation/campaigns/<int:campaign_id>/', automation_campaign_detail, name='automation_campaign_detail'),
+    path('api/automation/calendar/', automation_calendar, name='automation_calendar'),
+    path('api/automation/stats/', automation_stats, name='automation_stats'),
+    
+    # Integrations API
+    path('api/integrations/', integrations_list, name='integrations_list'),
+    path('api/integrations/<int:integration_id>/', integration_detail, name='integration_detail'),
+    path('api/integrations/<int:integration_id>/configure/email/', configure_email_integration, name='configure_email_integration'),
+    path('api/integrations/<int:integration_id>/configure/whatsapp/', configure_whatsapp_integration, name='configure_whatsapp_integration'),
+    path('api/integrations/<int:integration_id>/configure/sms/', configure_sms_integration, name='configure_sms_integration'),
+    path('api/integrations/<int:integration_id>/configure/signup/', configure_signup_integration, name='configure_signup_integration'),
+    path('api/integrations/<int:integration_id>/configure/facebook/', configure_facebook_integration, name='configure_facebook_integration'),
+    path('api/integrations/<int:integration_id>/test/', test_integration, name='test_integration'),
+    path('api/integrations/<int:integration_id>/logs/', integration_logs, name='integration_logs'),
+    path('api/integrations/stats/', integration_stats, name='integration_stats'),
 ]
