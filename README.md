@@ -1,16 +1,51 @@
 # Ebookr.io
 
-A full-stack SaaS platform for freelancer CRM with automated follow-ups and AI-powered features. Built with Django 5 + Celery 5 backend and Next.js 14 frontend.
+A full-stack SaaS CRM platform with AI-powered features, team collaboration, and advanced automation. Built with Django 5 + Celery 5 backend and Next.js 14 frontend.
 
-**Admin Panel**: Comprehensive management interface for signups, API integrations, email configuration, settings, and analytics. See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) for full documentation.
+**Latest Features**: Phase 4 AI Features (email generation, contact scoring, predictions) and Phase 5 CRM Integrations (Google Calendar, Salesforce, HubSpot, webhooks, API keys).
 
 ## Features
 
 ### Core CRM
-- **Contact Management** – Organize unlimited contacts with custom fields (type, cadence, preference)
+- **Contact Management** – Organize unlimited contacts with custom fields, tags, segments, and activities
+- **Task Management** – Create and track tasks with priorities and due dates
+- **Templates** – Email and message templates for consistent communication
 - **Drip Campaigns** – Set up automated email sequences with configurable delays
 - **Follow-up Tracking** – Schedule and track follow-ups with timestamps
-- **Reports & Analytics** – Monitor campaign performance and contact engagement
+
+### Phase 2: Analytics & Automation
+- **Analytics Dashboard** – Real-time metrics, contact growth charts, conversion funnels
+- **Lead Source Tracking** – Performance analysis by source with conversion rates
+- **Visual Workflow Builder** – Drag-and-drop workflow editor with conditional logic
+- **A/B Testing** – Test workflow variations with automatic winner detection
+- **Workflow Templates** – Pre-built templates for common automation scenarios
+
+### Phase 3: Team Collaboration
+- **Multi-User Teams** – Create teams with role-based permissions
+- **Team Roles** – Owner, Admin, Manager, Member, Viewer with granular permissions
+- **Member Invitations** – Invite team members via email with token-based access
+- **Activity Feed** – Team activity stream for collaboration
+- **Audit Logging** – Complete audit trail for compliance and security
+
+### Phase 4: AI Features 🤖
+- **AI Email Generation** – Generate personalized emails with Claude/Anthropic API
+- **Contact Scoring** – AI-powered lead scoring and prioritization
+- **Predictive Analytics** – Forecast contact growth, conversion rates, engagement
+- **Smart Recommendations** – AI-generated action suggestions
+- **Sentiment Analysis** – Analyze email and interaction sentiment
+
+### Phase 5: CRM Integrations 🔗
+- **Calendar Sync** – Google Calendar and Outlook integration
+- **CRM Connectors** – Salesforce, HubSpot, Pipedrive, Zoho sync
+- **Webhooks** – Real-time event notifications to external services
+- **API Keys** – Secure external API access with rate limiting
+- **Data Mapping** – Flexible field mapping between systems
+
+### UI/UX Features
+- **Left Sidebar Navigation** – Clean, organized navigation with icons
+- **Dark Mode** – System-wide dark mode with localStorage persistence
+- **Responsive Design** – Mobile-friendly interface
+- **Modern UI** – Tailwind CSS with hover effects and smooth transitions
 
 ### Admin Panel
 - **Dashboard** – Real-time metrics (signups, contacts, campaigns)
@@ -18,7 +53,7 @@ A full-stack SaaS platform for freelancer CRM with automated follow-ups and AI-p
 - **API Configuration** – Manage integrations (Stripe, SendGrid, Mailgun, Twilio, Anthropic)
 - **Email Configuration** – Configure email providers (SendGrid, Mailgun, SMTP)
 - **Global Settings** – Control feature flags, trial period, rate limiting
-- **Advanced Reports** – Signup trends, tier distribution, contact statistics, campaign metrics
+- **Advanced Reports** – Signup trends, tier distribution, contact statistics
 
 ### Tier-Based Pricing
 
@@ -46,13 +81,14 @@ A full-stack SaaS platform for freelancer CRM with automated follow-ups and AI-p
 - **Payments:** Stripe API
 - **Server:** Gunicorn + Django development server
 - **Language:** Python 3.12
+- **Apps:** contacts, billing, automation, analytics, workflows, teams, ai_features, crm_integrations
 
 ### Frontend
 - **Framework:** Next.js 14 (App Router)
 - **UI Library:** React 18 with TypeScript
-- **Styling:** Tailwind CSS 3.3
-- **Components:** Radix UI (Dialog, etc.)
-- **Icons:** Lucide React
+- **Styling:** Tailwind CSS 3.3 with dark mode support
+- **Components:** Radix UI, Lucide React icons
+- **State:** Client-side with localStorage for preferences
 
 ## Quick Start
 

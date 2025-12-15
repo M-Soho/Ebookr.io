@@ -1,8 +1,22 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
+import { 
+  LayoutDashboard, 
+  Users, 
+  Workflow, 
+  CheckSquare, 
+  Tag, 
+  FileText, 
+  Link2, 
+  BarChart3,
+  Settings,
+  Sparkles,
+  Shield,
+  Calendar
+} from 'lucide-react'
 import { getCurrentUser } from '@/lib/auth'
 import dynamic from 'next/dynamic'
+import DarkModeToggle from '@/components/DarkModeToggle'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -25,115 +39,166 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="bg-gray-50">
-
-        <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
+      <body className="bg-gray-50 dark:bg-gray-900">
+        <div className="flex h-screen overflow-hidden">
+          {/* Left Sidebar */}
+          <aside className="hidden md:flex md:flex-shrink-0">
+            <div className="flex flex-col w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
               {/* Logo */}
-              <div className="flex items-center">
-                <Link href="/" className="text-2xl font-bold text-blue-600">
+              <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+                <Link href="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   Ebookr
                 </Link>
+                <DarkModeToggle />
               </div>
 
-              {/* Navigation Links */}
-              <div className="hidden md:flex items-center gap-6">
+              {/* Navigation */}
+              <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                 <Link
                   href="/dashboard"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Dashboard
+                  <LayoutDashboard size={20} />
+                  <span className="font-medium">Dashboard</span>
                 </Link>
+
                 <Link
                   href="/contacts"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Contacts
+                  <Users size={20} />
+                  <span className="font-medium">Contacts</span>
                 </Link>
-                <Link
-                  href="/automations"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  Automations
-                </Link>
+
                 <Link
                   href="/workflows"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Workflows
+                  <Workflow size={20} />
+                  <span className="font-medium">Workflows</span>
                 </Link>
+
                 <Link
                   href="/tasks"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Tasks
+                  <CheckSquare size={20} />
+                  <span className="font-medium">Tasks</span>
                 </Link>
+
                 <Link
                   href="/tags"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Tags
+                  <Tag size={20} />
+                  <span className="font-medium">Tags</span>
                 </Link>
+
                 <Link
                   href="/templates"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  Templates
+                  <FileText size={20} />
+                  <span className="font-medium">Templates</span>
                 </Link>
-                <Link
-                  href="/integrations"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  Integrations
-                </Link>
-                <Link
-                  href="/reports"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  Reports
-                </Link>
-                <Link
-                  href="/admin/signin"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  Admin
-                </Link>
-              </div>
 
-              {/* User Info (Top Right) */}
-              <div className="flex items-center gap-4">
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Features
+                  </p>
+
+                  <Link
+                    href="/ai"
+                    className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <Sparkles size={20} />
+                    <span className="font-medium">AI Features</span>
+                  </Link>
+
+                  <Link
+                    href="/teams"
+                    className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <Users size={20} />
+                    <span className="font-medium">Teams</span>
+                  </Link>
+
+                  <Link
+                    href="/integrations-crm"
+                    className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <Link2 size={20} />
+                    <span className="font-medium">Integrations</span>
+                  </Link>
+
+                  <Link
+                    href="/reports"
+                    className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <BarChart3 size={20} />
+                    <span className="font-medium">Reports</span>
+                  </Link>
                 </div>
 
-                <AuthClient />
+                <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <Shield size={20} />
+                    <span className="font-medium">Admin</span>
+                  </Link>
 
-                {/* Mobile Menu Button */}
-                <div className="md:hidden">
-                  <button className="p-2 rounded-md text-gray-700 hover:bg-gray-100">
-                    <Menu size={24} />
-                  </button>
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <Settings size={20} />
+                    <span className="font-medium">Settings</span>
+                  </Link>
+                </div>
+              </nav>
+
+              {/* User Info at Bottom */}
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 dark:text-blue-300 font-semibold text-sm">
+                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </nav>
+          </aside>
 
-        {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {children}
-        </main>
+          {/* Main Content Area */}
+          <div className="flex flex-col flex-1 overflow-hidden">
+            {/* Top Bar (Mobile) */}
+            <header className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center justify-between h-16 px-4">
+                <Link href="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  Ebookr
+                </Link>
+                <div className="flex items-center gap-2">
+                  <DarkModeToggle />
+                  <AuthClient />
+                </div>
+              </div>
+            </header>
 
-        {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 mt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <p className="text-center text-gray-600 text-sm">
-              © 2025 Ebookr. All rights reserved.
-            </p>
+            {/* Main Content */}
+            <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+              <div className="py-6 px-4 sm:px-6 lg:px-8">
+                {children}
+              </div>
+            </main>
           </div>
-        </footer>
+        </div>
       </body>
     </html>
   )
