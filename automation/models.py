@@ -241,3 +241,236 @@ class FollowUpRule(models.Model):
     
     def __str__(self):
         return self.name
+
+
+class Workflow(models.Model):
+    """Advanced workflow with conditional logic and branching."""
+    
+    owner = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="workflows"
+    )
+    
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    
+    # Workflow configuration stored as JSON
+    # Format: {"nodes": [...], "edges": [...]}
+    workflow_data = models.JSONField(default=dict)
+    
+    is_active = models.BooleanField(default=True)
+    
+    # Trigger settings
+    TRIGGER_MANUAL = "manual"
+    TRIGGER_STATUS_CHANGE = "status_change"
+    TRIGGER_TAG_ADDED = "tag_added"
+    TRIGGER_FORM_SUBMIT = "form_submit"
+    TRIGGER_SCHEDULED = "scheduled"
+    
+    TRIGGER_CHOICES = [
+        (TRIGGER_MANUAL, "Manual Trigger"),
+        (TRIGGER_STATUS_CHANGE, "Status Change"),
+        (TRIGGER_TAG_ADDED, "Tag Added"),
+        (TRIGGER_FORM_SUBMIT, "Form Submit"),
+        (TRIGGER_SCHEDULED, "Scheduled"),
+    ]
+    
+    trigger_type = models.CharField(
+        max_length=20,
+        choices=TRIGGER_CHOICES,
+        default=TRIGGER_MANUAL
+    )
+    trigger_config = models.JSONField(default=dict)
+    
+    # Statistics
+    total_enrolled = models.IntegerField(default=0)
+    total_completed = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
+    
+    def __str__(self):
+        return self.name
+
+
+class WorkflowEnrollment(models.Model):
+    """Track a contact's progress through a workflow."""
+    
+    workflow = models.ForeignKey(
+        Workflow,
+        on_delete=models.CASCADE,
+        related_name="enrollments"
+    )
+    
+    contact = models.ForeignKey(
+        'contacts.Contact',
+        on_delete=models.CASCADE,
+        related_name="workflow_enrollments"
+    )
+    
+    current_node_id = models.CharField(max_length=100, blank=True)
+    
+    STATUS_ACTIVE = "active"
+    STATUS_COMPLETED = "completed"
+    STATUS_FAILED = "failed"
+    STATUS_PAUSED = "paused"
+    
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_PAUSED, "Paused"),
+    ]
+    
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_ACTIVE
+    )
+    
+    # Store execution history
+    execution_log = models.JSONField(default=list)
+    
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ["-enrolled_at"]
+        unique_together = ("workflow", "contact")
+    
+    def __str__(self):
+        return f"{self.contact} in {self.workflow.name}"
+
+
+class WorkflowCondition(models.Model):
+    """Define conditions for workflow branching."""
+    
+    workflow = models.ForeignKey(
+        Workflow,
+        on_delete=models.CASCADE,
+        related_name="conditions"
+    )
+    
+    name = models.CharField(max_length=255)
+    
+    # Condition configuration
+    field = models.CharField(max_length=100)
+    operator = models.CharField(max_length=50)
+    value = models.JSONField()
+    
+    # Logical grouping
+    LOGIC_AND = "AND"
+    LOGIC_OR = "OR"
+    
+    LOGIC_CHOICES = [
+        (LOGIC_AND, "AND"),
+        (LOGIC_OR, "OR"),
+    ]
+    
+    logic = models.CharField(
+        max_length=3,
+        choices=LOGIC_CHOICES,
+        default=LOGIC_AND
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["created_at"]
+    
+    def __str__(self):
+        return f"{self.name} - {self.field} {self.operator}"
+
+
+class ABTest(models.Model):
+    """A/B test configuration for workflows."""
+    
+    workflow = models.ForeignKey(
+        Workflow,
+        on_delete=models.CASCADE,
+        related_name="ab_tests"
+    )
+    
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    
+    # A/B test variants
+    variant_a_config = models.JSONField(default=dict)
+    variant_b_config = models.JSONField(default=dict)
+    
+    # Split percentage (0-100)
+    split_percentage = models.IntegerField(default=50)
+    
+    # Results
+    variant_a_enrolled = models.IntegerField(default=0)
+    variant_b_enrolled = models.IntegerField(default=0)
+    variant_a_converted = models.IntegerField(default=0)
+    variant_b_converted = models.IntegerField(default=0)
+    
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
+    
+    def __str__(self):
+        return f"{self.name} - {self.workflow.name}"
+    
+    @property
+    def variant_a_conversion_rate(self):
+        if self.variant_a_enrolled == 0:
+            return 0
+        return (self.variant_a_converted / self.variant_a_enrolled) * 100
+    
+    @property
+    def variant_b_conversion_rate(self):
+        if self.variant_b_enrolled == 0:
+            return 0
+        return (self.variant_b_converted / self.variant_b_enrolled) * 100
+    
+    @property
+    def winner(self):
+        if self.variant_a_conversion_rate > self.variant_b_conversion_rate:
+            return "A"
+        elif self.variant_b_conversion_rate > self.variant_a_conversion_rate:
+            return "B"
+        return "Tie"
+
+
+class WorkflowTemplate(models.Model):
+    """Pre-built workflow templates."""
+    
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    category = models.CharField(max_length=100)
+    
+    # Template workflow data
+    workflow_data = models.JSONField(default=dict)
+    
+    is_system = models.BooleanField(default=False)
+    
+    created_by = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_workflow_templates"
+    )
+    
+    times_used = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ["-times_used", "name"]
+    
+    def __str__(self):
+        return self.name
+

@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     'automation',
     'integrations',
     'admin_panel',
+    'analytics',
+    'teams',
+    'ai_features',
+    'crm_integrations',
 ]
 
 MIDDLEWARE = [

@@ -38,7 +38,13 @@ export default async function RootLayout({
               </div>
 
               {/* Navigation Links */}
-              <div className="hidden md:flex items-center gap-8">
+              <div className="hidden md:flex items-center gap-6">
+                <Link
+                  href="/dashboard"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Dashboard
+                </Link>
                 <Link
                   href="/contacts"
                   className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
@@ -52,16 +58,34 @@ export default async function RootLayout({
                   Automations
                 </Link>
                 <Link
+                  href="/workflows"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Workflows
+                </Link>
+                <Link
+                  href="/tasks"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Tasks
+                </Link>
+                <Link
+                  href="/tags"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Tags
+                </Link>
+                <Link
+                  href="/templates"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  Templates
+                </Link>
+                <Link
                   href="/integrations"
                   className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
                 >
                   Integrations
-                </Link>
-                <Link
-                  href="/settings"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  Settings
                 </Link>
                 <Link
                   href="/reports"
