@@ -173,18 +173,21 @@ Generate ONLY a JSON response with this exact structure:
     
     def _build_contact_context(self, contact: Contact, additional_context: Optional[Dict]) -> Dict:
         """Build context information about the contact"""
+        contact_name = f"{contact.first_name} {contact.last_name}".strip() or "there"
+        
         context = {
-            'name': contact.name,
+            'name': contact_name,
             'email': contact.email,
             'company': contact.company or 'Unknown',
             'status': contact.status,
+            'source': contact.source or 'Unknown',
         }
         
-        if contact.phone:
-            context['phone'] = contact.phone
+        if hasattr(contact, 'contact_pref'):
+            context['preferred_contact'] = contact.contact_pref
         
-        if contact.tags:
-            context['tags'] = contact.tags
+        if hasattr(contact, 'contact_cadence'):
+            context['cadence'] = contact.contact_cadence
         
         # Get recent activities
         recent_activities = Activity.objects.filter(
@@ -220,10 +223,12 @@ Generate ONLY a JSON response with this exact structure:
     
     def _generate_mock_email(self, contact: Contact, category: str, tone: str) -> Dict:
         """Generate mock email data for development/testing"""
+        contact_name = f"{contact.first_name} {contact.last_name}".strip() or "there"
+        
         mock_emails = {
             'introduction': {
                 'subject': f"Introduction - Partnership Opportunity with {contact.company or 'Your Company'}",
-                'body': f"""Hi {contact.name},
+                'body': f"""Hi {contact_name},
 
 I hope this email finds you well. I wanted to reach out to introduce myself and explore potential collaboration opportunities.
 
@@ -235,7 +240,7 @@ Best regards"""
             },
             'follow_up': {
                 'subject': f"Following up on our conversation",
-                'body': f"""Hi {contact.name},
+                'body': f"""Hi {contact_name},
 
 I wanted to follow up on our last conversation and see if you had any questions or needed additional information.
 
@@ -248,8 +253,8 @@ Best regards"""
         }
         
         return mock_emails.get(category, {
-            'subject': f"Message for {contact.name}",
-            'body': f"""Hi {contact.name},\n\nI wanted to reach out regarding our recent interaction.\n\nBest regards"""
+            'subject': f"Message for {contact_name}",
+            'body': f"""Hi {contact_name},\n\nI wanted to reach out regarding our recent interaction.\n\nBest regards"""
         })
 
 
@@ -386,19 +391,17 @@ class ContactScoringService:
     def _calculate_profile_completeness(self, contact: Contact) -> float:
         """Calculate profile completeness score"""
         score = 0.0
-        total_fields = 7
+        total_fields = 6
         
-        if contact.name:
+        if contact.first_name:
+            score += 100 / total_fields
+        if contact.last_name:
             score += 100 / total_fields
         if contact.email:
             score += 100 / total_fields
-        if contact.phone:
-            score += 100 / total_fields
         if contact.company:
             score += 100 / total_fields
-        if contact.position:
-            score += 100 / total_fields
-        if contact.tags:
+        if contact.source:
             score += 100 / total_fields
         if contact.notes:
             score += 100 / total_fields
