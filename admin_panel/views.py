@@ -217,7 +217,6 @@ def admin_settings(request):
 
         return JsonResponse({
             "id": settings.id,
-            "trial_days": settings.trial_days,
             "welcome_email_enabled": settings.welcome_email_enabled,
             "enable_drip_campaigns": settings.enable_drip_campaigns,
             "enable_ai_features": settings.enable_ai_features,
@@ -236,7 +235,6 @@ def admin_settings(request):
     if not settings:
         settings = AdminSettings.objects.create()
 
-    settings.trial_days = payload.get('trial_days', settings.trial_days)
     settings.welcome_email_enabled = payload.get('welcome_email_enabled', settings.welcome_email_enabled)
     settings.enable_drip_campaigns = payload.get('enable_drip_campaigns', settings.enable_drip_campaigns)
     settings.enable_ai_features = payload.get('enable_ai_features', settings.enable_ai_features)
@@ -248,7 +246,6 @@ def admin_settings(request):
     return JsonResponse({
         "data": {
             "id": settings.id,
-            "trial_days": settings.trial_days,
             "enable_drip_campaigns": settings.enable_drip_campaigns,
             "enable_ai_features": settings.enable_ai_features,
         }

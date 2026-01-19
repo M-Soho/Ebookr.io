@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import RedirectView
-from billing.views import stripe_webhook, trial_status, get_subscription, create_checkout_session
+from billing.views import stripe_webhook, get_subscription, create_checkout_session
 from contacts.views import contacts_api, contact_detail, export_contacts_csv, drip_campaigns_report
 from contacts.views_extended import (
     tags_list,
@@ -205,7 +205,6 @@ urlpatterns = [
     path('api/segments/', segments_list, name='segments_list'),
     
     # Billing API
-    path('api/billing/trial-status/', trial_status, name='trial_status'),
     path('api/billing/subscription/', get_subscription, name='get_subscription'),
     path('api/billing/create-checkout-session/', create_checkout_session, name='create_checkout_session'),
     

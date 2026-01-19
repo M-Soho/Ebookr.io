@@ -75,15 +75,15 @@ A full-stack SaaS CRM platform with AI-powered features, team collaboration, and
 - **Global Settings** – Control feature flags, trial period, rate limiting
 - **Advanced Reports** – Signup trends, tier distribution, contact statistics
 
-### Tier-Based Pricing
+### Pricing
 
-**Pro ($17.99/month)**
+**Pro Plan ($16.99/month)**
 - Unlimited contacts
 - Basic contact management with CSV import/export
 - Bulk operations (delete, update, tag management)
 - Advanced search with global Cmd+K shortcut
 - Automated drip campaigns
-- Advanced automation rules
+- Advanced automation rules & workflows
 - Task assignment and calendar view
 - Email sending with templates
 - Real-time notifications (in-app and email)
@@ -91,6 +91,8 @@ A full-stack SaaS CRM platform with AI-powered features, team collaboration, and
 - AI-powered email suggestions
 - AI contact insights & scoring
 - Advanced analytics & reports
+- Team collaboration features
+- CRM integrations
 - Priority support
 
 ## Stack

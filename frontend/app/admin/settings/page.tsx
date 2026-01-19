@@ -7,7 +7,6 @@ import { ChevronLeft, Settings } from 'lucide-react';
 
 interface AdminSettings {
   id: number;
-  trial_days: number;
   enable_drip_campaigns: boolean;
   enable_ai_features: boolean;
   enable_reports: boolean;
@@ -22,7 +21,6 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const [trialDays, setTrialDays] = useState('14');
   const [dripCampaignsEnabled, setDripCampaignsEnabled] = useState(true);
   const [aiEnabled, setAiEnabled] = useState(true);
   const [reportsEnabled, setReportsEnabled] = useState(true);
@@ -55,7 +53,6 @@ export default function SettingsPage() {
 
       const data: AdminSettings = await response.json();
       setSettings(data);
-      setTrialDays(data.trial_days.toString());
       setDripCampaignsEnabled(data.enable_drip_campaigns);
       setAiEnabled(data.enable_ai_features);
       setReportsEnabled(data.enable_reports);
@@ -84,7 +81,6 @@ export default function SettingsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trial_days: parseInt(trialDays),
           enable_drip_campaigns: dripCampaignsEnabled,
           enable_ai_features: aiEnabled,
           enable_reports: reportsEnabled,
@@ -153,29 +149,6 @@ export default function SettingsPage() {
 
         <div className="rounded-lg border border-neutral-200 bg-white p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Trial Configuration */}
-            <div className="border-b border-neutral-200 pb-8">
-              <h2 className="text-lg font-semibold text-neutral-900 mb-4">Trial Configuration</h2>
-              <div>
-                <label htmlFor="trial-days" className="block text-sm font-medium text-neutral-700">
-                  Trial Period (days)
-                </label>
-                <input
-                  id="trial-days"
-                  type="number"
-                  min="0"
-                  max="90"
-                  value={trialDays}
-                  onChange={(e) => setTrialDays(e.target.value)}
-                  className="input mt-2"
-                  disabled={submitting}
-                />
-                <p className="mt-1 text-xs text-neutral-500">
-                  Number of days new users get for free trial.
-                </p>
-              </div>
-            </div>
-
             {/* Feature Flags */}
             <div className="border-b border-neutral-200 pb-8">
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Feature Flags</h2>

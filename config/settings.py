@@ -156,8 +156,9 @@ CELERY_TIMEZONE = 'UTC'
 # Stripe Configuration
 STRIPE_API_KEY = env('STRIPE_API_KEY', default='')
 STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
-STRIPE_PRICE_MONTHLY = env('STRIPE_PRICE_MONTHLY', default='price_fake_monthly')
-STRIPE_PRICE_ANNUAL = env('STRIPE_PRICE_ANNUAL', default='price_fake_annual')
+# Single monthly price of $16.99
+STRIPE_PRICE_MONTHLY = env('STRIPE_PRICE_MONTHLY', default='price_1699_monthly')
+STRIPE_PRICE_ANNUAL = env('STRIPE_PRICE_ANNUAL', default='price_1699_annual')
 
 # Email Configuration
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')

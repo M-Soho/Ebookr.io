@@ -8,7 +8,6 @@ import { Mail, Lock, User, Zap } from 'lucide-react'
 function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const tier = searchParams.get('tier') || 'starter'
 
   const [formData, setFormData] = useState({
     name: '',
@@ -61,7 +60,7 @@ function SignupForm() {
       const signupData = {
         name: formData.name,
         email: formData.email,
-        tier: tier,
+        tier: 'pro',
         createdAt: new Date().toISOString(),
       }
       localStorage.setItem('user_signup', JSON.stringify(signupData))
@@ -77,16 +76,18 @@ function SignupForm() {
     }
   }
 
-  const tierInfo = tier === 'pro' ? {
-    name: 'Pro',
-    price: '$17.99/month',
-    features: ['Automated drip campaigns', 'AI-powered features', 'Advanced analytics'],
+  const tierInfo = {
+    name: 'Pro Plan',
+    price: '$16.99/month',
+    features: [
+      'Unlimited contacts',
+      'Automated drip campaigns',
+      'AI-powered features',
+      'Advanced analytics',
+      'Team collaboration',
+      'Priority support',
+    ],
     color: 'blue',
-  } : {
-    name: 'Starter',
-    price: 'Free',
-    features: ['Unlimited contacts', 'Basic management', 'Manual scheduling'],
-    color: 'gray',
   }
 
   return (
@@ -200,50 +201,40 @@ function SignupForm() {
 
         {/* Right side - Plan summary */}
         <div className="hidden md:flex flex-col justify-center">
-          <div className={`bg-gradient-to-br ${tierInfo.color === 'pro' ? 'from-blue-600 to-purple-600' : 'from-gray-100 to-gray-200'} rounded-lg p-8 ${tierInfo.color === 'pro' ? 'text-white' : 'text-gray-900'}`}>
+          <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg p-8 text-white">
             <div className="flex items-center gap-2 mb-6">
               <Zap size={24} />
               <h2 className="text-2xl font-bold">{tierInfo.name}</h2>
             </div>
 
-            <div className={`text-4xl font-bold mb-6`}>
+            <div className="text-4xl font-bold mb-6">
               {tierInfo.price}
             </div>
 
-            <p className={`mb-8 ${tierInfo.color === 'pro' ? 'text-blue-100' : 'text-gray-600'}`}>
-              {tier === 'pro' ? 'Everything you need to scale' : 'Perfect for getting started'}
+            <p className="text-blue-100 mb-8">
+              Everything you need to scale your business
             </p>
 
             <div className="space-y-4">
               {tierInfo.features.map((feature, idx) => (
                 <div key={idx} className="flex items-start gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    tierInfo.color === 'pro' ? 'bg-green-400 text-white' : 'bg-green-200 text-green-700'
-                  }`}>
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-green-400 text-white">
                     ✓
                   </div>
                   <span>{feature}</span>
                 </div>
               ))}
             </div>
-
-            {tier === 'pro' && (
-              <div className={`mt-8 p-4 rounded-lg ${tierInfo.color === 'pro' ? 'bg-blue-700' : 'bg-gray-300'}`}>
-                <p className="text-sm font-semibold mb-1">14-day free trial</p>
-                <p className={`text-sm ${tierInfo.color === 'pro' ? 'text-blue-100' : 'text-gray-600'}`}>
-                  No credit card required. Cancel anytime.
-                </p>
-              </div>
-            )}
           </div>
 
-          <div className={`mt-8 p-6 rounded-lg ${tierInfo.color === 'pro' ? 'bg-blue-50' : 'bg-white'} border ${tierInfo.color === 'pro' ? 'border-blue-200' : 'border-gray-200'}`}>
+          <div className="mt-8 p-6 rounded-lg bg-blue-50 border border-blue-200">
             <h3 className="font-semibold text-gray-900 mb-3">What's included</h3>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>✓ Secure contact database</li>
               <li>✓ Follow-up automation</li>
               <li>✓ Real-time reports</li>
-              {tier === 'pro' && <li>✓ AI-powered tools</li>}
+              <li>✓ AI-powered tools</li>
+              <li>✓ CRM integrations</li>
             </ul>
           </div>
         </div>

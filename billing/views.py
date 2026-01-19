@@ -68,8 +68,6 @@ def handle_subscription_created(data):
     stripe_customer_id = data["customer"]
     plan = parse_plan_from_items(data["items"]["data"])
     status = data["status"]
-    trial_start = parse_timestamp(data.get("trial_start"))
-    trial_end = parse_timestamp(data.get("trial_end"))
     current_period_start = parse_timestamp(data["current_period_start"])
     current_period_end = parse_timestamp(data["current_period_end"])
 
@@ -79,8 +77,6 @@ def handle_subscription_created(data):
             "stripe_customer_id": stripe_customer_id,
             "plan": plan,
             "status": status,
-            "trial_start_at": trial_start,
-            "trial_end_at": trial_end,
             "current_period_start": current_period_start,
             "current_period_end": current_period_end,
         },
@@ -102,8 +98,6 @@ def handle_subscription_updated(data):
     stripe_customer_id = data["customer"]
     plan = parse_plan_from_items(data["items"]["data"])
     status = data["status"]
-    trial_start = parse_timestamp(data.get("trial_start"))
-    trial_end = parse_timestamp(data.get("trial_end"))
     current_period_start = parse_timestamp(data["current_period_start"])
     current_period_end = parse_timestamp(data["current_period_end"])
     cancel_at_period_end = data.get("cancel_at_period_end", False)
@@ -114,8 +108,6 @@ def handle_subscription_updated(data):
             "stripe_customer_id": stripe_customer_id,
             "plan": plan,
             "status": status,
-            "trial_start_at": trial_start,
-            "trial_end_at": trial_end,
             "current_period_start": current_period_start,
             "current_period_end": current_period_end,
             "cancel_at_period_end": cancel_at_period_end,
@@ -191,26 +183,6 @@ def parse_timestamp(timestamp):
 
 
 @require_http_methods(["GET"])
-def trial_status(request):
-    """GET /api/billing/trial-status/
-    Return a small object describing the user's trial status.
-    For now this uses the hard-coded test user with id=1.
-    TODO: Replace with request.user once real auth is wired (Supabase).
-    """
-    user_id = getattr(request, 'mock_user_id', None) or 1
-    try:
-        sub = Subscription.objects.get(user__id=user_id)
-        data = {
-            "status": sub.status,
-            "trial_ends_at": sub.trial_end_at.isoformat() if sub.trial_end_at else None,
-        }
-    except Subscription.DoesNotExist:
-        data = {"status": "none", "trial_ends_at": None}
-
-    return JsonResponse({"data": data})
-
-
-@require_http_methods(["GET"])
 def get_subscription(request):
     """GET /api/billing/subscription/
     Return full subscription details for the current (test) user.
@@ -223,8 +195,6 @@ def get_subscription(request):
             "user_id": sub.user.id,
             "plan": sub.plan,
             "status": sub.status,
-            "trial_start_at": sub.trial_start_at.isoformat() if sub.trial_start_at else None,
-            "trial_end_at": sub.trial_end_at.isoformat() if sub.trial_end_at else None,
             "current_period_start": sub.current_period_start.isoformat() if sub.current_period_start else None,
             "current_period_end": sub.current_period_end.isoformat() if sub.current_period_end else None,
             "cancel_at_period_end": sub.cancel_at_period_end,

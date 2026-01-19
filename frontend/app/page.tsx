@@ -75,25 +75,25 @@ export default function Home() {
       <div id="pricing" className="space-y-12">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-gray-600 text-lg">Choose the plan that works for you</p>
+          <p className="text-gray-600 text-lg">One plan with everything you need</p>
         </div>
 
-        <div className="max-w-md mx-auto">
-          {/* Pro Tier */}
+        <div className="max-w-xl mx-auto">
+          {/* Pro Plan */}
           <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg p-8 text-white shadow-lg border-2 border-blue-600 relative">
             <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold">
               Popular
             </div>
-            <h3 className="text-2xl font-bold mb-2">Pro</h3>
-            <p className="text-blue-100 mb-6">For power users</p>
+            <h3 className="text-2xl font-bold mb-2">Pro Plan</h3>
+            <p className="text-blue-100 mb-6">Everything you need to scale</p>
             <div className="text-4xl font-bold mb-6">
-              $17.99<span className="text-lg text-blue-100 font-normal">/month</span>
+              $16.99<span className="text-lg text-blue-100 font-normal">/month</span>
             </div>
             <Link
-              href="/signup?tier=pro"
+              href="/signup"
               className="block w-full bg-white text-blue-600 py-3 rounded-lg font-semibold text-center hover:bg-blue-50 transition-colors mb-8"
             >
-              Start Free Trial
+              Get Started Now
             </Link>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
@@ -102,15 +102,19 @@ export default function Home() {
               </li>
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
+                <span>Complete contact management</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
                 <span>Automated drip campaigns</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
-                <span>Advanced automation rules</span>
+                <span>Advanced automation & workflows</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
-                <span>AI-powered email suggestions</span>
+                <span>AI-powered email generation</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
@@ -119,6 +123,14 @@ export default function Home() {
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
                 <span>Advanced analytics & reports</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
+                <span>Team collaboration</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
+                <span>CRM integrations</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
@@ -141,7 +153,7 @@ export default function Home() {
           href="/signup"
           className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
         >
-          Get Started Free
+          Get Started Now - $16.99/month
         </Link>
       </div>
     </div>

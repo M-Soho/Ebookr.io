@@ -87,12 +87,9 @@ class AdminSettings(models.Model):
         help_text="HTML template for welcome email"
     )
     
-    # Trial settings
-    trial_days = models.IntegerField(default=14)
-    
     # Feature flags
     enable_drip_campaigns = models.BooleanField(default=True)
-    enable_ai_features = models.BooleanField(default=False)
+    enable_ai_features = models.BooleanField(default=True)
     enable_reports = models.BooleanField(default=True)
     
     # Rate limiting
