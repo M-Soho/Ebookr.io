@@ -159,7 +159,6 @@ STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
 # Single monthly price of $16.99
 STRIPE_PRICE_MONTHLY = env('STRIPE_PRICE_MONTHLY', default='price_1699_monthly')
 STRIPE_PRICE_ANNUAL = env('STRIPE_PRICE_ANNUAL', default='price_1699_annual')
-
 # Email Configuration
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
@@ -171,3 +170,6 @@ DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@ebookr.io')
 
 # For SendGrid specifically (alternative to SMTP)
 SENDGRID_API_KEY = env('SENDGRID_API_KEY', default='')
+
+# Anthropic AI Configuration
+ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')

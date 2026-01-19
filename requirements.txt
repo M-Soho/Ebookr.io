@@ -11,6 +11,9 @@ django-environ==0.10.0
 # Payments
 stripe==11.0.0
 
+# AI/ML
+anthropic==0.39.0
+
 # CORS for local frontend -> backend requests
 django-cors-headers==4.0.0
 
