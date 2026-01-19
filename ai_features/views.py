@@ -21,7 +21,9 @@ from .models import (
 from .services import (
     EmailGenerationService,
     ContactScoringService,
-    SentimentAnalysisService
+    SentimentAnalysisService,
+    PredictiveAnalyticsService,
+    SmartRecommendationService
 )
 
 logger = logging.getLogger(__name__)
@@ -311,46 +313,47 @@ def predictions(request):
     
     Query params:
     - metric: contact_growth|conversion_rate|email_engagement|deal_closure|churn_rate
+    - training_days: days of historical data to use (default: 90)
+    - forecast_days: days to forecast ahead (default: 30)
     """
-    user = get_user_from_request(request)
-    metric = request.GET.get('metric', 'contact_growth')
-    
-    # Get or create prediction
-    prediction = PredictiveAnalytics.objects.filter(
-        owner_id=user.id,
-        metric=metric
-    ).order_by('-created_at').first()
-    
-    if not prediction:
-        # Create mock prediction for development
-        prediction = PredictiveAnalytics.objects.create(
-            owner_id=user.id,
+    try:
+        user = get_user_from_request(request)
+        metric = request.GET.get('metric', 'contact_growth')
+        training_days = int(request.GET.get('training_days', 90))
+        forecast_days = int(request.GET.get('forecast_days', 30))
+        
+        # Generate prediction using service
+        service = PredictiveAnalyticsService()
+        prediction = service.generate_prediction(
+            user=user,
             metric=metric,
-            historical_data={'dates': [], 'values': []},
-            predicted_values={'dates': [], 'values': []},
-            confidence_interval={'lower': [], 'upper': []},
-            trend_direction='stable',
-            recommendations='Continue current strategies'
+            training_period_days=training_days,
+            forecast_period_days=forecast_days
         )
-    
-    return JsonResponse({
-        'prediction': {
-            'id': prediction.id,
-            'metric': prediction.metric,
-            'historical_data': prediction.historical_data,
-            'predicted_values': prediction.predicted_values,
-            'confidence_interval': prediction.confidence_interval,
-            'trend_direction': prediction.trend_direction,
-            'accuracy_score': prediction.accuracy_score,
-            'anomalies_detected': prediction.anomalies_detected,
-            'recommendations': prediction.recommendations,
-            'created_at': prediction.created_at.isoformat()
-        }
-    })
+        
+        return JsonResponse({
+            'prediction': {
+                'id': prediction.id,
+                'metric': prediction.metric,
+                'historical_data': prediction.historical_data,
+                'predicted_values': prediction.predicted_values,
+                'confidence_interval': prediction.confidence_interval,
+                'trend_direction': prediction.trend_direction,
+                'accuracy_score': prediction.accuracy_score,
+                'anomalies_detected': prediction.anomalies_detected,
+                'recommendations': prediction.recommendations,
+                'training_period_days': prediction.training_period_days,
+                'forecast_period_days': prediction.forecast_period_days,
+                'created_at': prediction.created_at.isoformat()
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error generating prediction: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
 @csrf_exempt
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def recommendations(request):
     """
     GET /api/ai/recommendations/
@@ -359,55 +362,70 @@ def recommendations(request):
     Query params:
     - type: contact_action|workflow_suggestion|template_usage|timing_optimization
     - priority: high|medium|low
+    - generate: true to generate new recommendations
+    
+    POST /api/ai/recommendations/
+    Generate new recommendations
     """
-    user = get_user_from_request(request)
-    
-    rec_type = request.GET.get('type')
-    priority = request.GET.get('priority')
-    page = int(request.GET.get('page', 1))
-    limit = int(request.GET.get('limit', 10))
-    
-    # Get active recommendations
-    recs = SmartRecommendation.objects.filter(
-        owner_id=user.id,
-        is_dismissed=False,
-        expires_at__gt=timezone.now()
-    )
-    
-    if rec_type:
-        recs = recs.filter(recommendation_type=rec_type)
-    
-    if priority:
-        recs = recs.filter(priority=priority)
-    
-    recs = recs.order_by('-priority', '-confidence_score', '-created_at')
-    
-    paginator = Paginator(recs, limit)
-    page_obj = paginator.get_page(page)
-    
-    data = [
-        {
-            'id': r.id,
-            'type': r.recommendation_type,
-            'priority': r.priority,
-            'title': r.title,
-            'description': r.description,
-            'action_url': r.action_url,
-            'expected_impact': r.expected_impact,
-            'confidence_score': round(r.confidence_score * 100, 1),
-            'contact_id': r.related_contact_id,
-            'created_at': r.created_at.isoformat(),
-            'expires_at': r.expires_at.isoformat()
-        }
-        for r in page_obj
-    ]
-    
-    return JsonResponse({
-        'recommendations': data,
-        'count': paginator.count,
-        'page': page,
-        'total_pages': paginator.num_pages
-    })
+    try:
+        user = get_user_from_request(request)
+        
+        if request.method == 'POST' or request.GET.get('generate') == 'true':
+            # Generate new recommendations
+            limit = int(request.GET.get('limit', 10))
+            service = SmartRecommendationService()
+            service.generate_recommendations(user, limit=limit)
+        
+        # Fetch recommendations
+        rec_type = request.GET.get('type')
+        priority = request.GET.get('priority')
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 10))
+        
+        # Get active recommendations
+        recs = SmartRecommendation.objects.filter(
+            owner_id=user.id,
+            is_dismissed=False,
+            expires_at__gt=timezone.now()
+        )
+        
+        if rec_type:
+            recs = recs.filter(recommendation_type=rec_type)
+        
+        if priority:
+            recs = recs.filter(priority=priority)
+        
+        recs = recs.order_by('-priority', '-confidence_score', '-created_at')
+        
+        paginator = Paginator(recs, limit)
+        page_obj = paginator.get_page(page)
+        
+        data = [
+            {
+                'id': r.id,
+                'type': r.recommendation_type,
+                'priority': r.priority,
+                'title': r.title,
+                'description': r.description,
+                'action_url': r.action_url,
+                'expected_impact': r.expected_impact,
+                'confidence_score': round(r.confidence_score * 100, 1),
+                'contact_id': r.related_contact_id,
+                'created_at': r.created_at.isoformat(),
+                'expires_at': r.expires_at.isoformat()
+            }
+            for r in page_obj
+        ]
+        
+        return JsonResponse({
+            'recommendations': data,
+            'count': paginator.count,
+            'page': page,
+            'total_pages': paginator.num_pages
+        })
+    except Exception as e:
+        logger.error(f"Error getting recommendations: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
 @csrf_exempt
