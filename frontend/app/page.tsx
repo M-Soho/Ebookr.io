@@ -78,44 +78,7 @@ export default function Home() {
           <p className="text-gray-600 text-lg">Choose the plan that works for you</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Starter Tier */}
-          <div className="bg-white border-2 border-gray-200 rounded-lg p-8 hover:shadow-lg transition-shadow">
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-            <p className="text-gray-600 mb-6">Perfect for getting started</p>
-            <div className="text-4xl font-bold text-gray-900 mb-6">
-              $0<span className="text-lg text-gray-600 font-normal">/month</span>
-            </div>
-            <Link
-              href="/signup?tier=starter"
-              className="block w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold text-center hover:bg-gray-300 transition-colors mb-8"
-            >
-              Get Started
-            </Link>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <Check size={20} className="text-green-600 flex-shrink-0 mt-1" />
-                <span className="text-gray-700">Unlimited contacts</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Check size={20} className="text-green-600 flex-shrink-0 mt-1" />
-                <span className="text-gray-700">Basic contact management</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Check size={20} className="text-green-600 flex-shrink-0 mt-1" />
-                <span className="text-gray-700">Manual follow-up scheduling</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Check size={20} className="text-green-600 flex-shrink-0 mt-1" />
-                <span className="text-gray-700">Basic reports</span>
-              </li>
-              <li className="flex items-start gap-3 opacity-50">
-                <span className="text-gray-400">✗</span>
-                <span className="text-gray-500">AI-powered features</span>
-              </li>
-            </ul>
-          </div>
-
+        <div className="max-w-md mx-auto">
           {/* Pro Tier */}
           <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg p-8 text-white shadow-lg border-2 border-blue-600 relative">
             <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold">
@@ -124,7 +87,7 @@ export default function Home() {
             <h3 className="text-2xl font-bold mb-2">Pro</h3>
             <p className="text-blue-100 mb-6">For power users</p>
             <div className="text-4xl font-bold mb-6">
-              $29<span className="text-lg text-blue-100 font-normal">/month</span>
+              $17.99<span className="text-lg text-blue-100 font-normal">/month</span>
             </div>
             <Link
               href="/signup?tier=pro"
@@ -135,7 +98,7 @@ export default function Home() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />
-                <span>Everything in Starter</span>
+                <span>Unlimited contacts</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check size={20} className="text-green-300 flex-shrink-0 mt-1" />

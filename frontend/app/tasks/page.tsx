@@ -18,10 +18,20 @@ interface Task {
     email: string;
   } | null;
   created_at: string;
+  reminder_enabled?: boolean;
+  reminder_time?: string | null;
+}
+
+interface Contact {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -33,17 +43,23 @@ export default function TasksPage() {
     priority: "medium",
     due_date: "",
     contact_id: "",
+    reminder_enabled: false,
+    reminder_time: "",
   });
 
   useEffect(() => {
     fetchTasks();
+    fetchContacts();
   }, [filterStatus]);
 
   const fetchTasks = async () => {
     try {
-      const url = filterStatus === "all" 
-        ? "/api/tasks/" 
-        : `/api/tasks/?status=${filterStatus}`;
+      let url = "http://localhost:8000/api/tasks/";
+      if (filterStatus === "overdue") {
+        url += "?overdue=true";
+      } else if (filterStatus !== "all") {
+        url += `?status=${filterStatus}`;
+      }
       
       const response = await fetch(url, {
         credentials: "include",
@@ -57,20 +73,46 @@ export default function TasksPage() {
     }
   };
 
+  const fetchContacts = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/contacts/", {
+        credentials: "include",
+      });
+      const data = await response.json();
+      setContacts(data.contacts || []);
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       const url = editingTask 
-        ? `/api/tasks/${editingTask.id}/` 
-        : "/api/tasks/";
+        ? `http://localhost:8000/api/tasks/${editingTask.id}/` 
+        : "http://localhost:8000/api/tasks/";
       const method = editingTask ? "PUT" : "POST";
 
-      const payload = {
-        ...formData,
-        contact_id: formData.contact_id || null,
-        due_date: formData.due_date || null,
+      const payload: any = {
+        title: formData.title,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        reminder_enabled: formData.reminder_enabled,
       };
+
+      if (formData.contact_id) {
+        payload.contact_id = parseInt(formData.contact_id);
+      }
+
+      if (formData.due_date) {
+        payload.due_date = new Date(formData.due_date).toISOString();
+      }
+
+      if (formData.reminder_enabled && formData.reminder_time) {
+        payload.reminder_time = new Date(formData.reminder_time).toISOString();
+      }
 
       const response = await fetch(url, {
         method,
@@ -94,7 +136,7 @@ export default function TasksPage() {
     if (!confirm("Are you sure you want to delete this task?")) return;
 
     try {
-      const response = await fetch(`/api/tasks/${taskId}/`, {
+      const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -109,7 +151,7 @@ export default function TasksPage() {
 
   const handleStatusChange = async (taskId: number, newStatus: string) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/`, {
+      const response = await fetch(`http://localhost:8000/api/tasks/${taskId}/`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -131,8 +173,10 @@ export default function TasksPage() {
       description: task.description,
       status: task.status,
       priority: task.priority,
-      due_date: task.due_date ? task.due_date.split("T")[0] : "",
+      due_date: task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : "",
       contact_id: task.contact?.id?.toString() || "",
+      reminder_enabled: task.reminder_enabled || false,
+      reminder_time: task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : "",
     });
     setShowModal(true);
   };
@@ -145,6 +189,8 @@ export default function TasksPage() {
       priority: "medium",
       due_date: "",
       contact_id: "",
+      reminder_enabled: false,
+      reminder_time: "",
     });
   };
 
@@ -156,8 +202,10 @@ export default function TasksPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
+      case "urgent":
+        return "bg-red-600 text-white";
       case "high":
-        return "bg-red-100 text-red-700";
+        return "bg-orange-100 text-orange-700";
       case "medium":
         return "bg-yellow-100 text-yellow-700";
       case "low":
@@ -192,8 +240,8 @@ export default function TasksPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
-          <p className="text-gray-600 mt-2">Manage your tasks and follow-ups</p>
+          <h1 className="text-3xl font-bold text-gray-900">Tasks & Reminders</h1>
+          <p className="text-gray-600 mt-2">Manage your tasks and schedule follow-ups with contacts</p>
         </div>
         <button
           onClick={handleNewTask}
@@ -210,6 +258,7 @@ export default function TasksPage() {
           { value: "todo", label: "To Do" },
           { value: "in_progress", label: "In Progress" },
           { value: "completed", label: "Completed" },
+          { value: "overdue", label: "⚠️ Overdue" },
         ].map((filter) => (
           <button
             key={filter.value}
@@ -257,14 +306,17 @@ export default function TasksPage() {
 
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
                   {task.due_date && (
-                    <span>Due: {new Date(task.due_date).toLocaleDateString()}</span>
+                    <span>📅 Due: {new Date(task.due_date).toLocaleDateString()}</span>
+                  )}
+                  {task.reminder_enabled && task.reminder_time && (
+                    <span className="text-blue-600">🔔 Reminder set</span>
                   )}
                   {task.contact && (
                     <Link
                       href={`/contacts/${task.contact.id}`}
                       className="text-blue-600 hover:underline"
                     >
-                      {task.contact.name}
+                      👤 {task.contact.name}
                     </Link>
                   )}
                   <span>Created: {new Date(task.created_at).toLocaleDateString()}</span>
@@ -357,6 +409,7 @@ export default function TasksPage() {
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
                   </select>
                 </div>
 
@@ -377,16 +430,63 @@ export default function TasksPage() {
                 </div>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Due Date
+                  Due Date & Time
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={formData.due_date}
                   onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Associated Contact
+                </label>
+                <select
+                  value={formData.contact_id}
+                  onChange={(e) => setFormData({ ...formData, contact_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">None</option>
+                  {contacts.map((contact) => (
+                    <option key={contact.id} value={contact.id}>
+                      {contact.first_name} {contact.last_name} ({contact.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-4 border-t pt-4">
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    id="reminder_enabled"
+                    checked={formData.reminder_enabled}
+                    onChange={(e) => setFormData({ ...formData, reminder_enabled: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="reminder_enabled" className="ml-2 text-sm font-medium text-gray-700">
+                    Enable Reminder
+                  </label>
+                </div>
+
+                {formData.reminder_enabled && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Reminder Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.reminder_time}
+                      onChange={(e) => setFormData({ ...formData, reminder_time: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3">

@@ -2,13 +2,33 @@
 
 A full-stack SaaS CRM platform with AI-powered features, team collaboration, and advanced automation. Built with Django 5 + Celery 5 backend and Next.js 14 frontend.
 
-**Latest Features**: Phase 4 AI Features (email generation, contact scoring, predictions) and Phase 5 CRM Integrations (Google Calendar, Salesforce, HubSpot, webhooks, API keys).
+**Latest Features**: All Critical & High Priority features implemented - Email sending, notifications, bulk operations, advanced search, CSV import/export, task assignment, calendar views, and rich text editing.
 
 ## Features
 
-### Core CRM
+### Core CRM (Enhanced ✨)
 - **Contact Management** – Organize unlimited contacts with custom fields, tags, segments, and activities
+  - **NEW**: CSV Import/Export with field mapping and error handling
+  - **NEW**: Bulk operations (delete, update status, manage tags, update cadence)
+  - **NEW**: Advanced search with global search (Cmd+K) across contacts, tasks, and activities
+  - **NEW**: Activity timeline with filtering and visual icons
 - **Task Management** – Create and track tasks with priorities and due dates
+  - **NEW**: Task assignment to team members with search
+  - **NEW**: Calendar view (month/week) with priority color-coding
+  - **NEW**: Bulk task operations (delete, complete)
+  - **NEW**: Automated email reminders and overdue notifications
+- **Email System** – Professional email management
+  - **NEW**: Email composition with template variables ({{first_name}}, etc.)
+  - **NEW**: Bulk email sending to multiple contacts
+  - **NEW**: Email tracking and status monitoring
+- **Notifications** – Real-time notification system
+  - **NEW**: In-app notification bell with unread count
+  - **NEW**: 6 notification types (task_assigned, task_due, task_overdue, email_received, contact_updated, mention)
+  - **NEW**: Notification preferences (in-app and email toggles)
+  - **NEW**: Auto-refresh every 30 seconds
+- **Rich Text Editing** – Enhanced note-taking
+  - **NEW**: Rich text editor with formatting toolbar
+  - **NEW**: Support for bold, italic, underline, lists, links, images, code blocks
 - **Templates** – Email and message templates for consistent communication
 - **Drip Campaigns** – Set up automated email sequences with configurable delays
 - **Follow-up Tracking** – Schedule and track follow-ups with timestamps
@@ -57,16 +77,17 @@ A full-stack SaaS CRM platform with AI-powered features, team collaboration, and
 
 ### Tier-Based Pricing
 
-**Starter (Free)**
+**Pro ($17.99/month)**
 - Unlimited contacts
-- Basic contact management
-- Manual follow-up scheduling
-- Basic reports
-
-**Pro ($29/month)**
-- Everything in Starter
+- Basic contact management with CSV import/export
+- Bulk operations (delete, update, tag management)
+- Advanced search with global Cmd+K shortcut
 - Automated drip campaigns
 - Advanced automation rules
+- Task assignment and calendar view
+- Email sending with templates
+- Real-time notifications (in-app and email)
+- Rich text notes and activity timeline
 - AI-powered email suggestions
 - AI contact insights & scoring
 - Advanced analytics & reports
@@ -77,8 +98,12 @@ A full-stack SaaS CRM platform with AI-powered features, team collaboration, and
 ### Backend
 - **Framework:** Django 5.0.1
 - **Task Queue:** Celery 5.3.1 with Redis broker
+  - Automated task reminders (every 15 min)
+  - Overdue task notifications (daily)
+  - Daily digest emails (daily at 8 AM)
 - **Database:** PostgreSQL (Supabase) or SQLite (dev)
 - **Payments:** Stripe API
+- **Email:** SMTP, SendGrid, or Mailgun
 - **Server:** Gunicorn + Django development server
 - **Language:** Python 3.12
 - **Apps:** contacts, billing, automation, analytics, workflows, teams, ai_features, crm_integrations
@@ -87,8 +112,52 @@ A full-stack SaaS CRM platform with AI-powered features, team collaboration, and
 - **Framework:** Next.js 14 (App Router)
 - **UI Library:** React 18 with TypeScript
 - **Styling:** Tailwind CSS 3.3 with dark mode support
-- **Components:** Radix UI, Lucide React icons
+- **Components:** 
+  - Radix UI, Lucide React icons
+  - Custom components: EmailComposeModal, NotificationBell, ImportContactsModal, BulkActionsBar, AdvancedSearchBar, TaskCalendar, RichTextEditor, TaskAssignmentDropdown, NotificationPreferences
 - **State:** Client-side with localStorage for preferences
+
+### New API Endpoints (28 total)
+
+#### Email APIs (4)
+- `POST /api/emails/send-email/` - Send email to contact(s)
+- `POST /api/emails/send-template-email/` - Send templated email
+- `GET /api/emails/email-templates/` - List templates
+- `POST /api/emails/email-templates/create/` - Create template
+
+#### Notification APIs (6)
+- `GET /api/notifications/` - List notifications
+- `POST /api/notifications/<id>/mark-read/` - Mark as read
+- `POST /api/notifications/mark-all-read/` - Mark all as read
+- `DELETE /api/notifications/<id>/` - Delete notification
+- `GET /api/notifications/preferences/` - Get preferences
+- `PUT /api/notifications/preferences/<id>/` - Update preferences
+
+#### Bulk Operation APIs (7)
+- `POST /api/bulk/delete-contacts/` - Bulk delete contacts
+- `POST /api/bulk/update-status/` - Bulk update contact status
+- `POST /api/bulk/add-tags/` - Bulk add tags
+- `POST /api/bulk/remove-tags/` - Bulk remove tags
+- `POST /api/bulk/update-cadence/` - Bulk update contact cadence
+- `POST /api/bulk/delete-tasks/` - Bulk delete tasks
+- `POST /api/bulk/complete-tasks/` - Bulk complete tasks
+
+#### Search APIs (3)
+- `GET /api/search/global/?q=query` - Global search
+- `GET /api/search/contacts/?status=lead&tags=vip` - Advanced contact search
+- `GET /api/search/tasks/?priority=high&status=todo` - Advanced task search
+
+#### Import/Export APIs (3)
+- `POST /api/contacts/import-csv/` - Import contacts from CSV
+- `GET /api/contacts/export-csv/` - Export contacts to CSV
+- `GET /api/tasks/export-csv/` - Export tasks to CSV
+
+#### Activity & Task APIs (5)
+- `GET /api/activities/?contact_id=<id>` - Get contact activities
+- `POST /api/tasks/` - Create task with assignment
+- `PUT /api/tasks/<id>/` - Update task assignment
+- `GET /api/teams/<id>/members/` - Get team members
+- `GET /api/users/` - Get all users
 
 ## Quick Start
 
@@ -147,7 +216,7 @@ source .venv/bin/activate
 celery -A config worker -l info
 ```
 
-#### 6. (Optional) Run Celery Beat for Scheduled Tasks
+#### 6. Run Celery Beat for Scheduled Tasks (REQUIRED for notifications)
 
 In another terminal:
 
@@ -156,7 +225,11 @@ source .venv/bin/activate
 celery -A config beat -l info
 ```
 
-This will run the `send_scheduled_followups` task every 5 minutes to process pending follow-ups.
+This will run automated tasks:
+- **Task Reminders** - Every 15 minutes for upcoming tasks
+- **Overdue Notifications** - Daily at 9 AM for overdue tasks
+- **Daily Digest** - Daily at 8 AM with activity summary
+- **Follow-ups** - Every 5 minutes for scheduled follow-ups
 
 ### Frontend Setup
 
@@ -204,53 +277,81 @@ This user is displayed in the top-right of the navbar. When real authentication 
 ├── config/
 │   ├── __init__.py              # Celery app import
 │   ├── settings.py              # SaaS-ready Django settings
-│   ├── urls.py                  # URL routing
+│   ├── urls.py                  # URL routing with 28 new endpoints
 │   ├── wsgi.py                  # WSGI application
-│   └── celery.py                # Celery app configuration
+│   ├── celery.py                # Celery app with beat schedule
+│   └── middleware.py            # Custom middleware
 ├── contacts/
-│   ├── models.py                # Contact model (CRM)
+│   ├── models.py                # Contact, Task, Activity models
 │   ├── admin.py                 # Django admin registration
-│   └── views.py                 # JSON API views (GET/POST contacts)
+│   ├── views.py                 # Main API views
+│   ├── views_extended.py        # Extended contact views
+│   ├── email_service.py         # ✨ Email sending service
+│   ├── email_views.py           # ✨ Email API endpoints
+│   ├── notification_models.py   # ✨ Notification models
+│   ├── notification_views.py    # ✨ Notification API
+│   ├── bulk_operations.py       # ✨ Bulk operations API
+│   └── search_views.py          # ✨ Advanced search API
 ├── billing/
-│   ├── models.py                # Subscription model with trial support
-│   ├── admin.py                 # Django admin for subscriptions
+│   ├── models.py                # Subscription, DripCampaign models
+│   ├── admin.py                 # Django admin
 │   └── views.py                 # Stripe webhook handler
 ├── automation/
-│   ├── models.py                # FollowUpRule, ScheduledFollowUp
+│   ├── models.py                # Workflow, WorkflowCondition, ABTest
 │   ├── admin.py                 # Admin registration
-│   └── tasks.py                 # Celery task for sending follow-ups
-├── users/
-│   └── (placeholder app for future custom user model)
+│   ├── views.py                 # Automation API
+│   ├── workflow_views.py        # Workflow builder API
+│   ├── conditions.py            # Condition evaluation
+│   └── tasks.py                 # ✨ Celery tasks (reminders, notifications, digests)
+├── analytics/
+│   ├── models.py                # LeadSource, Conversion models
+│   └── views.py                 # Analytics API
+├── teams/
+│   ├── models.py                # Team, TeamMember, TeamInvitation
+│   ├── permissions.py           # Role-based permissions
+│   └── views.py                 # Team API
+├── ai_features/
+│   ├── models.py                # AIEmailGeneration, ContactScore, Prediction
+│   └── views.py                 # AI API endpoints
+├── crm_integrations/
+│   ├── models.py                # CalendarSync, CRMIntegration, Webhook, APIKey
+│   └── views.py                 # Integration API
+├── admin_panel/
+│   ├── models.py                # AdminSignup, AdminSetting
+│   └── views.py                 # Admin panel API
 ├── frontend/                     # Next.js 14 frontend
 │   ├── package.json             # Node.js dependencies
 │   ├── tsconfig.json            # TypeScript configuration
 │   ├── tailwind.config.ts       # Tailwind CSS config
-│   ├── next.config.ts           # Next.js config
-│   ├── postcss.config.mjs       # PostCSS configuration
-│   ├── .env.example             # Frontend environment variables template
 │   ├── app/
-│   │   ├── layout.tsx           # Root layout with navbar and footer
+│   │   ├── layout.tsx           # Root layout with navbar
 │   │   ├── globals.css          # Global Tailwind directives
-│   │   ├── page.tsx             # Landing page with features & pricing tiers
-│   │   ├── signup/
-│   │   │   └── page.tsx         # Signup page with tier selection
-│   │   ├── contacts/
-│   │   │   ├── page.tsx         # Contacts list (server component)
-│   │   │   ├── [id]/page.tsx    # Contact detail page
-│   │   │   └── contacts-page-client.tsx  # Contacts UI (client component)
-│   │   ├── reports/
-│   │   │   ├── page.tsx         # Reports index
-│   │   │   └── drip/page.tsx    # Drip campaigns report
-│   │   └── settings/
-│   │       └── page.tsx         # Settings page
-│   ├── components/
-│   │   ├── NewContactModal.tsx  # Radix UI modal for creating contacts
-│   │   ├── EditContactModal.tsx # Radix UI modal for editing contacts
-│   │   └── AuthClient.tsx       # Client-side auth display
+│   │   ├── page.tsx             # Landing page
+│   │   ├── contacts/            # Contact management pages
+│   │   ├── tasks/               # Task management pages
+│   │   ├── reports/             # Analytics and reports
+│   │   ├── admin/               # Admin panel pages
+│   │   ├── automations/         # Workflow builder
+│   │   └── settings/            # Settings pages
+│   ├── components/              # ✨ React components
+│   │   ├── EmailComposeModal.tsx        # Email composition UI
+│   │   ├── NotificationBell.tsx         # Notification center
+│   │   ├── ImportContactsModal.tsx      # CSV import UI
+│   │   ├── BulkActionsBar.tsx           # Bulk operations toolbar
+│   │   ├── AdvancedSearchBar.tsx        # Global search (Cmd+K)
+│   │   ├── TaskCalendar.tsx             # Calendar view
+│   │   ├── ActivityTimeline.tsx         # Activity timeline
+│   │   ├── RichTextEditor.tsx           # Rich text editor
+│   │   ├── TaskAssignmentDropdown.tsx   # Task assignment UI
+│   │   └── NotificationPreferences.tsx  # Notification settings
 │   └── lib/
-│       ├── api.ts              # TypeScript API client (Contact, Reports, Drip)
-│       └── auth.ts             # Fake auth module (TODO: replace with Supabase)
-└── README.md                     # This file
+│       ├── api.ts              # TypeScript API client
+│       └── auth.ts             # Auth module
+├── CRITICAL_FEATURES_IMPLEMENTATION.md  # ✨ Technical implementation docs
+├── IMPLEMENTATION_COMPLETE.md           # ✨ Deployment guide
+├── QUICK_REFERENCE.md                   # ✨ Quick commands reference
+├── FRONTEND_COMPONENTS_STATUS.md        # ✨ Frontend component status
+└── README.md                            # This file
 ```
 
 ## Models
@@ -335,6 +436,245 @@ Individual step in a drip sequence:
 | `/admin/email-config` | `admin/email-config/page.tsx` | Email provider settings |
 | `/admin/settings` | `admin/settings/page.tsx` | Global admin settings and feature flags |
 | `/admin/reports` | `admin/reports/page.tsx` | Comprehensive admin reports |
+
+## 🎯 Critical Features Usage Guide
+
+### 📧 Email System
+
+**Send Email to Contact(s)**
+
+```bash
+# Single contact
+curl -X POST http://localhost:8000/api/emails/send-email/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_id": 1,
+    "subject": "Follow up",
+    "body": "Hi, just following up on our conversation."
+  }'
+
+# Multiple contacts
+curl -X POST http://localhost:8000/api/emails/send-email/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_ids": [1, 2, 3],
+    "subject": "Team Update",
+    "body": "Hello everyone!"
+  }'
+```
+
+**Send Template Email**
+
+```bash
+curl -X POST http://localhost:8000/api/emails/send-template-email/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_id": 1,
+    "template_id": 1
+  }'
+```
+
+**Frontend Component**: Use `<EmailComposeModal />` component
+
+### 🔔 Notifications
+
+**List Notifications**
+
+```bash
+curl http://localhost:8000/api/notifications/
+```
+
+**Mark Notification as Read**
+
+```bash
+curl -X POST http://localhost:8000/api/notifications/5/mark-read/
+```
+
+**Get/Update Notification Preferences**
+
+```bash
+# Get preferences
+curl http://localhost:8000/api/notifications/preferences/
+
+# Update preference
+curl -X PUT http://localhost:8000/api/notifications/preferences/1/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "in_app_enabled": true,
+    "email_enabled": false
+  }'
+```
+
+**Frontend Components**: 
+- `<NotificationBell />` - Notification center with bell icon
+- `<NotificationPreferences />` - Settings page
+
+### 📥 Import/Export Contacts
+
+**Import from CSV**
+
+```bash
+curl -X POST http://localhost:8000/api/contacts/import-csv/ \
+  -F "file=@contacts.csv"
+```
+
+CSV format:
+```csv
+first_name,last_name,email,company,phone,status
+John,Doe,john@example.com,Acme Inc,555-0100,lead
+Jane,Smith,jane@example.com,TechCorp,555-0200,active
+```
+
+**Export to CSV**
+
+```bash
+curl http://localhost:8000/api/contacts/export-csv/ -o contacts.csv
+```
+
+**Frontend Component**: `<ImportContactsModal />` with drag-and-drop
+
+### 🗂️ Bulk Operations
+
+**Bulk Delete Contacts**
+
+```bash
+curl -X POST http://localhost:8000/api/bulk/delete-contacts/ \
+  -H "Content-Type: application/json" \
+  -d '{"contact_ids": [1, 2, 3]}'
+```
+
+**Bulk Update Status**
+
+```bash
+curl -X POST http://localhost:8000/api/bulk/update-status/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_ids": [1, 2],
+    "status": "active"
+  }'
+```
+
+**Bulk Add Tags**
+
+```bash
+curl -X POST http://localhost:8000/api/bulk/add-tags/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_ids": [1, 2, 3],
+    "tags": ["vip", "enterprise"]
+  }'
+```
+
+**Bulk Complete Tasks**
+
+```bash
+curl -X POST http://localhost:8000/api/bulk/complete-tasks/ \
+  -H "Content-Type: application/json" \
+  -d '{"task_ids": [10, 11, 12]}'
+```
+
+**Frontend Component**: `<BulkActionsBar />` appears when items are selected
+
+### 🔍 Advanced Search
+
+**Global Search**
+
+```bash
+# Search across all entities
+curl "http://localhost:8000/api/search/global/?q=john&type=all"
+
+# Search only contacts
+curl "http://localhost:8000/api/search/global/?q=smith&type=contacts"
+```
+
+**Advanced Contact Search**
+
+```bash
+curl "http://localhost:8000/api/search/contacts/?status=lead&tags=vip&source=referral"
+```
+
+**Advanced Task Search**
+
+```bash
+curl "http://localhost:8000/api/search/tasks/?priority=high&status=todo&assigned_to=1"
+```
+
+**Frontend Component**: `<AdvancedSearchBar />` with Cmd+K shortcut
+
+### 📅 Calendar & Tasks
+
+**View Tasks in Calendar**
+
+**Frontend Component**: `<TaskCalendar />` with month/week views
+
+**Assign Task to User**
+
+```bash
+curl -X POST http://localhost:8000/api/tasks/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Follow up with lead",
+    "contact": 1,
+    "assigned_to": 2,
+    "due_date": "2026-01-25",
+    "priority": "high"
+  }'
+```
+
+**Frontend Component**: `<TaskAssignmentDropdown />` for selecting team members
+
+### 📝 Rich Text Notes
+
+**Frontend Component**: `<RichTextEditor />` with formatting toolbar
+
+Features:
+- Bold, italic, underline
+- Bullet/numbered lists
+- Links and images
+- Code blocks and quotes
+- Headings (H1-H4)
+
+### 📊 Activity Timeline
+
+**Get Contact Activities**
+
+```bash
+curl "http://localhost:8000/api/activities/?contact_id=1"
+```
+
+**Frontend Component**: `<ActivityTimeline />` with filtering
+
+### ⚡ Automated Email Notifications
+
+**Celery Beat Schedule** (runs automatically):
+
+- **Task Reminders**: Every 15 minutes
+  - Sends reminders for tasks due within 24 hours
+  
+- **Overdue Notifications**: Daily at 9 AM
+  - Notifies about overdue tasks
+  
+- **Daily Digest**: Daily at 8 AM
+  - Sends activity summary email
+
+Configure in `automation/tasks.py`:
+
+```python
+@shared_task
+def send_task_reminders():
+    """Send reminders for tasks due in the next 24 hours"""
+    # Automatically creates notifications
+    
+@shared_task  
+def send_overdue_task_notifications():
+    """Send notifications for overdue tasks"""
+    # Daily at 9 AM
+    
+@shared_task
+def send_daily_digest():
+    """Send daily activity digest"""
+    # Daily at 8 AM
+```
 
 ## API Endpoints
 

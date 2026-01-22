@@ -27,13 +27,16 @@ The main dashboard displays:
 - **Last 7 Days** - Recent signup activity
 - **Total Contacts** - Active contacts in the system
 - **Active Campaigns** - Running drip campaigns
-- **Tier Breakdown** - Distribution of Starter vs Pro users
+- **Tier Breakdown** - Distribution of Pro users
+- **Email Activity** - ✨ Sent emails (last 7 days)
+- **Task Status** - ✨ Overdue, due today, and completed tasks
+- **Notification Stats** - ✨ Unread notifications count
 
 ### 2. Managing Signups
 Access at: `/admin/signups`
 
 - View all user registrations in a table
-- See signup date, tier (Starter/Pro), and user details
+- See signup date, tier (Pro), and user details
 - Paginate through signups (10 per page)
 - Filter by tier if needed
 
@@ -42,8 +45,8 @@ Access at: `/admin/api-config`
 
 Add credentials for:
 - **Stripe** - Payment processing (API key format: `sk_live_*`)
-- **SendGrid** - Email sending (API key format: `SG.*`)
-- **Mailgun** - Email management (API key format: `key-*`)
+- **SendGrid** - Email sending (API key format: `SG.*`) ✨ Required for email features
+- **Mailgun** - Email management (API key format: `key-*`) ✨ Alternative email provider
 - **Twilio** - SMS/messaging (API key format: `ACxxxxxxxx`)
 - **Anthropic** - AI features (API key format: `sk-ant-*`)
 
@@ -55,18 +58,27 @@ Add credentials for:
 
 The API key will be masked (showing only last 4 characters) for security.
 
-### 4. Setting Up Email
+### 4. Setting Up Email ✨ REQUIRED
 Access at: `/admin/email-config`
+
+**Email is now required for:**
+- Contact email sending
+- Template-based emails
+- Task reminders and notifications
+- Daily digest emails
+- Bulk email operations
 
 Choose your email provider:
 
-**Option A: SendGrid**
+**Option A: SendGrid (Recommended)**
 - Requires: SendGrid API key
 - [Get API key](https://app.sendgrid.com/settings/api_keys)
+- Best for high-volume sending
 
 **Option B: Mailgun**
 - Requires: Mailgun domain and API key
 - [Get Mailgun credentials](https://app.mailgun.com/)
+- Good for transactional emails
 
 **Option C: SMTP**
 - Requires: SMTP host, port, username, password
@@ -74,6 +86,7 @@ Choose your email provider:
   - Gmail: `smtp.gmail.com:587`
   - Office365: `smtp.office365.com:587`
   - SendGrid: `smtp.sendgrid.net:587`
+- Note: Gmail has daily sending limits
 
 ### 5. Global Settings
 Access at: `/admin/settings`
@@ -84,16 +97,66 @@ Configure:
   - Drip Campaigns
   - AI Features
   - Reports
+  - ✨ Email Sending
+  - ✨ Notifications
+  - ✨ Bulk Operations
+  - ✨ Calendar View
 - **Rate Limiting** - Max API requests per hour (default: 1000)
+- ✨ **Email Notifications** - Configure automated task reminders
+- ✨ **Notification Preferences** - System-wide notification defaults
 
 ### 6. View Reports
 Access at: `/admin/reports`
 
 Analyze:
 - **30-Day Signup Trends** - Daily signup activity chart
-- **Tier Distribution** - Percentage of Starter vs Pro users
+- **Tier Distribution** - Percentage of Pro users
 - **Contact Statistics** - Total contacts and breakdown by type
 - **Campaign Statistics** - Active/draft/completed campaigns
+- ✨ **Email Analytics** - Sent/opened/clicked metrics
+- ✨ **Task Completion Rates** - Task completion trends
+- ✨ **User Activity** - Active users and engagement metrics
+
+## ✨ New Feature Administration
+
+### 7. Email Template Management
+Access via Django Admin: `/admin/contacts/emailtemplate/`
+
+Create reusable email templates with variables:
+- Variables: `{{first_name}}`, `{{last_name}}`, `{{company}}`, `{{email}}`
+- Templates auto-populate in email compose modal
+- Track template usage statistics
+
+### 8. Notification Management
+Access via Django Admin: `/admin/contacts/notification/`
+
+Monitor system notifications:
+- View all notifications by type
+- Check notification delivery status
+- Manage notification preferences for users
+- View notification statistics
+
+### 9. Celery Task Monitoring
+
+**Required: Run Celery Beat for automated tasks**
+
+```bash
+# Terminal 1: Celery Worker
+celery -A config worker -l info
+
+# Terminal 2: Celery Beat (scheduler)
+celery -A config beat -l info
+```
+
+**Automated Tasks:**
+- Task reminders (every 15 minutes)
+- Overdue notifications (daily at 9 AM)
+- Daily digest emails (daily at 8 AM)
+
+**Monitor tasks:**
+- Check Celery worker logs
+- View task execution history
+- Monitor task failures
 
 ## Common Tasks
 

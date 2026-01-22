@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.views.generic.base import RedirectView
 from billing.views import stripe_webhook, trial_status, get_subscription, create_checkout_session
 from contacts.views import contacts_api, contact_detail, export_contacts_csv, drip_campaigns_report
@@ -17,6 +17,34 @@ from contacts.views_extended import (
     bulk_import_contacts,
     export_template_csv,
 )
+from contacts.email_views import (
+    send_email,
+    send_template_email,
+    email_templates,
+    create_email_template,
+)
+from contacts.notification_views import (
+    notifications_list,
+    mark_notification_read,
+    mark_all_read,
+    delete_notification,
+    notification_preferences,
+    update_notification_preferences,
+)
+from contacts.bulk_operations import (
+    bulk_delete_contacts,
+    bulk_update_status,
+    bulk_add_tags,
+    bulk_remove_tags,
+    bulk_delete_tasks,
+    bulk_complete_tasks,
+    bulk_update_contact_cadence,
+)
+from contacts.search_views import (
+    global_search,
+    advanced_contact_search,
+    advanced_task_search,
+)
 from admin_panel.views import (
     admin_dashboard,
     list_signups,
@@ -31,6 +59,14 @@ from automation.views import (
     automation_campaign_detail,
     automation_calendar,
     automation_stats,
+)
+from automation.automation_views import (
+    automation_rules_list,
+    automation_rule_detail,
+    schedule_follow_up_sequence,
+    schedule_recurring_tasks,
+    task_batches_list,
+    automation_stats as task_automation_stats,
 )
 from automation.workflow_views import (
     workflows_list,
@@ -98,13 +134,16 @@ urlpatterns = [
     path('', RedirectView.as_view(url='http://localhost:3000/', permanent=False)),
     path('admin/', admin.site.urls),
     
-    # Admin API endpoints
-    path('api/admin/dashboard/', admin_dashboard, name='admin_dashboard'),
-    path('api/admin/signups/', list_signups, name='list_signups'),
-    path('api/admin/api-config/', api_configuration_list, name='api_configuration_list'),
-    path('api/admin/email-config/', email_configuration, name='email_configuration'),
-    path('api/admin/settings/', admin_settings, name='admin_settings'),
-    path('api/admin/reports/', admin_reports, name='admin_reports'),
+    # New Admin Panel System Monitoring (all endpoints)
+    path('api/admin/', include('admin_panel.urls')),
+    
+    # Legacy Admin API endpoints (keep for backward compatibility)
+    path('api/admin-legacy/dashboard/', admin_dashboard, name='admin_dashboard'),
+    path('api/admin-legacy/signups/', list_signups, name='list_signups'),
+    path('api/admin-legacy/api-config/', api_configuration_list, name='api_configuration_list'),
+    path('api/admin-legacy/email-config/', email_configuration, name='email_configuration'),
+    path('api/admin-legacy/settings/', admin_settings, name='admin_settings'),
+    path('api/admin-legacy/reports/', admin_reports, name='admin_reports'),
     
     # Stripe webhook
     path('stripe/webhook/', stripe_webhook, name='stripe_webhook'),
@@ -117,6 +156,34 @@ urlpatterns = [
     path('api/contacts/<int:contact_id>/', contact_detail, name='contact_detail'),
     path('api/contacts/<int:contact_id>/tags/', contact_tags, name='contact_tags'),
     path('api/contacts/', contacts_api, name='contacts_api'),
+    
+    # Email API
+    path('api/contacts/send-email/', send_email, name='send_email'),
+    path('api/contacts/send-template-email/', send_template_email, name='send_template_email'),
+    path('api/contacts/email-templates/', email_templates, name='email_templates'),
+    path('api/contacts/email-templates/create/', create_email_template, name='create_email_template'),
+    
+    # Notifications API
+    path('api/notifications/', notifications_list, name='notifications_list'),
+    path('api/notifications/<int:notification_id>/mark-read/', mark_notification_read, name='mark_notification_read'),
+    path('api/notifications/mark-all-read/', mark_all_read, name='mark_all_read'),
+    path('api/notifications/<int:notification_id>/', delete_notification, name='delete_notification'),
+    path('api/notifications/preferences/', notification_preferences, name='notification_preferences'),
+    path('api/notifications/preferences/update/', update_notification_preferences, name='update_notification_preferences'),
+    
+    # Bulk Operations API
+    path('api/contacts/bulk-delete/', bulk_delete_contacts, name='bulk_delete_contacts'),
+    path('api/contacts/bulk-update-status/', bulk_update_status, name='bulk_update_status'),
+    path('api/contacts/bulk-add-tags/', bulk_add_tags, name='bulk_add_tags'),
+    path('api/contacts/bulk-remove-tags/', bulk_remove_tags, name='bulk_remove_tags'),
+    path('api/contacts/bulk-update-cadence/', bulk_update_contact_cadence, name='bulk_update_contact_cadence'),
+    path('api/tasks/bulk-delete/', bulk_delete_tasks, name='bulk_delete_tasks'),
+    path('api/tasks/bulk-complete/', bulk_complete_tasks, name='bulk_complete_tasks'),
+    
+    # Search API
+    path('api/search/', global_search, name='global_search'),
+    path('api/contacts/search/', advanced_contact_search, name='advanced_contact_search'),
+    path('api/tasks/search/', advanced_task_search, name='advanced_task_search'),
     
     # Tags API
     path('api/tags/<int:tag_id>/', tag_detail, name='tag_detail'),
@@ -148,6 +215,14 @@ urlpatterns = [
     path('api/automation/campaigns/<int:campaign_id>/', automation_campaign_detail, name='automation_campaign_detail'),
     path('api/automation/calendar/', automation_calendar, name='automation_calendar'),
     path('api/automation/stats/', automation_stats, name='automation_stats'),
+    
+    # Task Automation API
+    path('api/task-automation/rules/', automation_rules_list, name='automation_rules_list'),
+    path('api/task-automation/rules/<int:rule_id>/', automation_rule_detail, name='automation_rule_detail'),
+    path('api/task-automation/schedule-sequence/', schedule_follow_up_sequence, name='schedule_follow_up_sequence'),
+    path('api/task-automation/schedule-recurring/', schedule_recurring_tasks, name='schedule_recurring_tasks'),
+    path('api/task-automation/batches/', task_batches_list, name='task_batches_list'),
+    path('api/task-automation/stats/', task_automation_stats, name='task_automation_stats'),
     
     # Workflow API
     path('api/workflows/', workflows_list, name='workflows_list'),

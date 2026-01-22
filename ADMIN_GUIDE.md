@@ -31,11 +31,11 @@ Displays key metrics:
 - **Last 7 Days**: Recent signup activity
 - **Total Contacts**: Active contact records in the system
 - **Active Campaigns**: Currently running drip campaigns
-- **Tier Breakdown**: Distribution of Starter vs Pro users
+- **Tier Breakdown**: Distribution of Pro users
 
 ### 2. Signups Management (`/admin/signups`)
 - View all user signups in a paginated table
-- Filter by tier (Starter/Pro)
+- Filter by tier (Pro)
 - Export signup data
 - Track signup dates and user tiers
 
@@ -71,7 +71,7 @@ Control app-wide settings:
 ### 6. Reports (`/admin/reports`)
 View comprehensive analytics:
 - **30-Day Signup Trends**: Line chart of daily signups
-- **Tier Distribution**: Pie chart of Starter vs Pro users
+- **Tier Distribution**: Distribution of Pro users
 - **Contact Statistics**: Total contacts and breakdown by type
 - **Campaign Statistics**: Active/draft/completed campaign counts
 
@@ -169,7 +169,7 @@ Returns:
 Tracks user signups:
 - `name`: User's name
 - `email`: User's email address
-- `tier`: Subscription tier (starter/pro)
+- `tier`: Subscription tier (pro)
 - `user`: Optional reference to User model
 - `created_at/updated_at`: Timestamps
 

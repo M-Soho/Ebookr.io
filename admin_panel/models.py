@@ -11,8 +11,8 @@ class AdminSignup(models.Model):
     email = models.EmailField()
     tier = models.CharField(
         max_length=50,
-        choices=[('starter', 'Starter'), ('pro', 'Pro')],
-        default='starter'
+        choices=[('pro', 'Pro')],
+        default='pro'
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

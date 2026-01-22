@@ -69,7 +69,6 @@ export default function TeamsPage() {
   const getPlanBadge = (plan: string) => {
     const badges = {
       free: 'bg-gray-100 text-gray-800',
-      starter: 'bg-blue-100 text-blue-800',
       professional: 'bg-purple-100 text-purple-800',
       enterprise: 'bg-yellow-100 text-yellow-800',
     }
@@ -214,7 +213,6 @@ export default function TeamsPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="free">Free</option>
-                  <option value="starter">Starter</option>
                   <option value="professional">Professional</option>
                   <option value="enterprise">Enterprise</option>
                 </select>

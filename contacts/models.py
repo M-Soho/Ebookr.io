@@ -374,6 +374,14 @@ class Task(models.Model):
         on_delete=models.CASCADE,
         related_name="tasks"
     )
+    assigned_to = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_tasks",
+        help_text="User this task is assigned to (optional)"
+    )
     contact = models.ForeignKey(
         Contact,
         on_delete=models.CASCADE,

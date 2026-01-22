@@ -79,7 +79,7 @@ function SignupForm() {
 
   const tierInfo = tier === 'pro' ? {
     name: 'Pro',
-    price: '$29/month',
+    price: '$17.99/month',
     features: ['Automated drip campaigns', 'AI-powered features', 'Advanced analytics'],
     color: 'blue',
   } : {

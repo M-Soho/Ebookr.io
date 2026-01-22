@@ -24,7 +24,6 @@ class Team(models.Model):
         max_length=50,
         choices=[
             ('free', 'Free'),
-            ('starter', 'Starter'),
             ('professional', 'Professional'),
             ('enterprise', 'Enterprise'),
         ],

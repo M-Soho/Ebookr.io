@@ -474,3 +474,126 @@ class WorkflowTemplate(models.Model):
     def __str__(self):
         return self.name
 
+
+class TaskAutomationRule(models.Model):
+    """
+    Rules for automatically creating and scheduling tasks
+    """
+    
+    TRIGGER_ACTIVITY = "activity"
+    TRIGGER_STATUS_CHANGE = "status_change"
+    TRIGGER_NEW_CONTACT = "new_contact"
+    TRIGGER_CADENCE = "cadence"
+    TRIGGER_OVERDUE_FOLLOWUP = "overdue_followup"
+    TRIGGER_TIME_BASED = "time_based"
+    
+    TRIGGER_TYPE_CHOICES = [
+        (TRIGGER_ACTIVITY, "Activity Trigger"),
+        (TRIGGER_STATUS_CHANGE, "Status Change"),
+        (TRIGGER_NEW_CONTACT, "New Contact"),
+        (TRIGGER_CADENCE, "Contact Cadence"),
+        (TRIGGER_OVERDUE_FOLLOWUP, "Overdue Follow-up"),
+        (TRIGGER_TIME_BASED, "Time-based"),
+    ]
+    
+    owner = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="task_automation_rules"
+    )
+    
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    
+    trigger_type = models.CharField(
+        max_length=50,
+        choices=TRIGGER_TYPE_CHOICES
+    )
+    
+    # Trigger configuration (JSON)
+    # For activity: {"activity_types": ["email_opened", "email_clicked"]}
+    # For status: {"from_status": "lead", "to_status": "active"}
+    # For cadence: {"cadences": ["daily", "weekly"]}
+    trigger_config = models.JSONField(default=dict)
+    
+    # Task template
+    task_title_template = models.CharField(
+        max_length=255,
+        help_text="Use {{contact_name}}, {{activity_type}}, etc."
+    )
+    task_description_template = models.TextField(blank=True)
+    task_priority = models.CharField(
+        max_length=20,
+        default="medium",
+        help_text="low, medium, high, urgent"
+    )
+    
+    # Timing
+    delay_hours = models.IntegerField(
+        default=24,
+        help_text="Hours after trigger to schedule task"
+    )
+    reminder_offset_hours = models.IntegerField(
+        default=1,
+        help_text="Hours before due date to set reminder"
+    )
+    
+    is_active = models.BooleanField(default=True)
+    
+    # Usage tracking
+    times_triggered = models.IntegerField(default=0)
+    tasks_created = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ["name"]
+    
+    def __str__(self):
+        return f"{self.name} ({self.trigger_type})"
+
+
+class ScheduledTaskBatch(models.Model):
+    """
+    Track batches of automatically scheduled tasks
+    """
+    
+    owner = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="scheduled_task_batches"
+    )
+    
+    batch_name = models.CharField(max_length=255)
+    batch_type = models.CharField(
+        max_length=50,
+        help_text="follow_up_sequence, recurring, automation_workflow, etc."
+    )
+    
+    contact = models.ForeignKey(
+        "contacts.Contact",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="task_batches"
+    )
+    
+    tasks_count = models.IntegerField(default=0)
+    tasks_completed = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "Scheduled task batches"
+    
+    def __str__(self):
+        return f"{self.batch_name} ({self.tasks_completed}/{self.tasks_count})"
+    
+    @property
+    def is_completed(self):
+        return self.tasks_completed >= self.tasks_count and self.tasks_count > 0
+
+

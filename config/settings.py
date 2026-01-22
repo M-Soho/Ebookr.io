@@ -158,3 +158,15 @@ STRIPE_API_KEY = env('STRIPE_API_KEY', default='')
 STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
 STRIPE_PRICE_MONTHLY = env('STRIPE_PRICE_MONTHLY', default='price_fake_monthly')
 STRIPE_PRICE_ANNUAL = env('STRIPE_PRICE_ANNUAL', default='price_fake_annual')
+
+# Email Configuration
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@ebookr.io')
+
+# For SendGrid specifically (alternative to SMTP)
+SENDGRID_API_KEY = env('SENDGRID_API_KEY', default='')
