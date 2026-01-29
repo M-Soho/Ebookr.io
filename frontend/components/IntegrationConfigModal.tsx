@@ -10,7 +10,7 @@ interface Integration {
   provider: string;
   status: string;
   is_active: boolean;
-  config: any;
+  config?: any;
   specific_config?: any;
 }
 

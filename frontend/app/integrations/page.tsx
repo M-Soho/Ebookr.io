@@ -26,6 +26,7 @@ interface Integration {
   last_sync_at: string | null;
   error_count: number;
   created_at: string;
+  config?: any;
 }
 
 interface IntegrationStats {

@@ -32,11 +32,6 @@ export default async function RootLayout({
   // TODO: Once real auth is wired (Supabase), this will be replaced with actual user session
   const user = getCurrentUser()
 
-  // Client-side auth UI (dynamic import to avoid server-only issues)
-  const AuthClient = dynamic(() => import('@/components/AuthClient'), {
-    ssr: false,
-  })
-
   return (
     <html lang="en">
       <body className="bg-gray-50 dark:bg-gray-900">
@@ -186,7 +181,6 @@ export default async function RootLayout({
                 </Link>
                 <div className="flex items-center gap-2">
                   <DarkModeToggle />
-                  <AuthClient />
                 </div>
               </div>
             </header>
