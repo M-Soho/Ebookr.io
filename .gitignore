@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+
+# Env / secrets (keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Database (local SQLite)
+*.db
+*.db-journal
+prisma/dev.db
+
+# Prisma generated client
+**/src/generated/
+
+# Vite / caches
+.vite/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db

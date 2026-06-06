@@ -1,0 +1,106 @@
+// Local dev uses SQLite for zero-setup iteration.
+// Production target: PostgreSQL (Supabase). To switch, change provider to
+// "postgresql", point DATABASE_URL at Postgres, and (per Ebookr_REQUIREMENTS.md)
+// add an `organizations` table + `orgId` to every business table for true
+// multi-tenant RLS. For local iteration we scope by `userId` (one workspace per
+// user) — the same pattern Bankroll Guardian uses. Swap-in points are marked
+// `// MT:` below.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  passwordHash  String? // null for OAuth-only accounts
+  googleId      String?  @unique
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Billing (Stripe). plan: free | pro | team   // MT: lift to organization
+  plan                 String    @default("free")
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?
+  subscriptionStatus   String? // trialing | active | past_due | canceled | incomplete
+  currentPeriodEnd     DateTime?
+
+  contacts     Contact[]
+  reminders    Reminder[]
+  interactions Interaction[]
+  authTokens   AuthToken[]
+}
+
+// Single-use email-verification / password-reset tokens (SHA-256 hash stored).
+model AuthToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // email_verify | password_reset
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  userId    String // MT: orgId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String   @default("")
+  email     String?
+  phone     String?
+  company   String?
+  status    String   @default("lead") // lead | prospect | client | inactive
+  tags      String   @default("[]") // JSON string array (SQLite has no arrays)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reminders    Reminder[]
+  interactions Interaction[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model Reminder {
+  id          String    @id @default(cuid())
+  userId      String // MT: orgId
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contactId   String?
+  contact     Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  title       String
+  dueAt       DateTime
+  completedAt DateTime?
+  type        String    @default("task") // call | email | meeting | task
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, dueAt])
+  @@index([userId, completedAt])
+}
+
+model Interaction {
+  id         String   @id @default(cuid())
+  userId     String // MT: orgId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  type       String // call | email | meeting | note
+  summary    String
+  occurredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([userId, occurredAt])
+  @@index([contactId, occurredAt])
+}
