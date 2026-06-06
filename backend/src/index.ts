@@ -5,6 +5,7 @@ import { authRouter } from "./routes/auth.routes.js";
 import { contactsRouter } from "./routes/contacts.routes.js";
 import { remindersRouter } from "./routes/reminders.routes.js";
 import { dashboardRouter } from "./routes/dashboard.routes.js";
+import { aiRouter } from "./routes/ai.routes.js";
 import { errorHandler } from "./middleware/error.js";
 
 const app = express();
@@ -17,6 +18,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/contacts", contactsRouter);
 app.use("/api/reminders", remindersRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/ai", aiRouter);
 
 app.use(errorHandler);
 

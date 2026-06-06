@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { api, apiError } from "../lib/api";
+import { AiEmailModal } from "../components/AiEmailModal";
 import {
   CONTACT_STATUSES,
   fullName,
@@ -259,6 +260,7 @@ function ContactDrawer({ id, onClose, onEdit, onChanged }: {
   const [logType, setLogType] = useState("note");
   const [logSummary, setLogSummary] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showAi, setShowAi] = useState(false);
 
   const load = useCallback(() => {
     api.get(`/contacts/${id}`).then((res) => setC(res.data.contact)).catch((e) => setError(apiError(e)));
@@ -332,6 +334,17 @@ function ContactDrawer({ id, onClose, onEdit, onChanged }: {
               <button className="btn-secondary flex-1" onClick={() => onEdit(c)}>Edit</button>
               <button className="btn-danger" onClick={remove}>Delete</button>
             </div>
+            <button className="btn-primary mt-2 w-full" onClick={() => setShowAi(true)}>
+              ✨ Draft follow-up email
+            </button>
+
+            {showAi && (
+              <AiEmailModal
+                contactId={c.id}
+                contactName={fullName(c)}
+                onClose={() => setShowAi(false)}
+              />
+            )}
 
             {/* Open reminders */}
             {c.reminders.filter((r) => !r.completedAt).length > 0 && (

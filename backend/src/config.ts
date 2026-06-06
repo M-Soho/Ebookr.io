@@ -26,6 +26,18 @@ export const config = {
     from: process.env.EMAIL_FROM ?? "Ebookr <no-reply@ebookr.io>",
   },
 
+  // AI (Anthropic) — email generation. Gated off until ANTHROPIC_API_KEY is set;
+  // until then the service returns a labeled template draft so the UX is demoable.
+  ai: {
+    apiKey: process.env.ANTHROPIC_API_KEY ?? "",
+    // Defaults to Opus 4.8; override with a cheaper model (e.g. claude-haiku-4-5)
+    // via ANTHROPIC_MODEL if cost matters more than quality.
+    model: process.env.ANTHROPIC_MODEL ?? "claude-opus-4-8",
+    get enabled() {
+      return Boolean(this.apiKey);
+    },
+  },
+
   // Stripe billing (optional — endpoints are gated off until keys are set)
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY ?? "",

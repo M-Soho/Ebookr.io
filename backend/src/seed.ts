@@ -31,7 +31,7 @@ async function main() {
     { firstName: "Sara", lastName: "Idris", company: "Idris Consulting", status: "lead", email: "sara@idris.io", tags: ["b2b"] },
   ];
 
-  const contacts = [];
+  const contacts: { id: string; firstName: string }[] = [];
   for (const c of seedContacts) {
     contacts.push(
       await prisma.contact.create({
