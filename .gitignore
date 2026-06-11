@@ -22,6 +22,9 @@ prisma/dev.db
 .vite/
 *.tsbuildinfo
 
+# Vercel
+.vercel/
+
 # Logs
 *.log
 npm-debug.log*
